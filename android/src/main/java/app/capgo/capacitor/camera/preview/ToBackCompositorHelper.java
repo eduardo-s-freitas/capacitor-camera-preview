@@ -14,14 +14,6 @@ public final class ToBackCompositorHelper {
 
     private ToBackCompositorHelper() {}
 
-    public static boolean shouldModifyWindowBackground() {
-        return false;
-    }
-
-    public static boolean shouldLockSystemUiColors() {
-        return false;
-    }
-
     public static boolean shouldTransparentizeWebViewParent() {
         return true;
     }

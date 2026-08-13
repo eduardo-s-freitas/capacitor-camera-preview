@@ -11,16 +11,6 @@ import org.junit.Test;
 public class ToBackCompositorHelperTest {
 
     @Test
-    public void neverModifiesWindowBackground() {
-        assertFalse(ToBackCompositorHelper.shouldModifyWindowBackground());
-    }
-
-    @Test
-    public void neverLocksSystemUiColors() {
-        assertFalse(ToBackCompositorHelper.shouldLockSystemUiColors());
-    }
-
-    @Test
     public void transparentizesWebViewParentOnAllDevices() {
         assertTrue(ToBackCompositorHelper.shouldTransparentizeWebViewParent());
     }

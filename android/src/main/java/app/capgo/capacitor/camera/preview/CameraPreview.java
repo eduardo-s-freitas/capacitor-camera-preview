@@ -154,6 +154,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
     private Drawable originalWebViewBackground;
     private boolean originalWebViewBackgroundCaptured = false;
     private Float originalWebViewAlpha;
+    private Integer originalWebViewLayerType;
     private Drawable originalWebViewParentBackground;
     private boolean originalWebViewParentBackgroundCaptured = false;
     private volatile boolean toBackVisualStateActive = false;
@@ -1980,6 +1981,9 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
             if (originalWebViewAlpha == null) {
                 originalWebViewAlpha = webView.getAlpha();
             }
+            if (originalWebViewLayerType == null) {
+                originalWebViewLayerType = webView.getLayerType();
+            }
             if (webViewParent != null && !originalWebViewParentBackgroundCaptured) {
                 originalWebViewParentBackground = webViewParent.getBackground();
                 originalWebViewParentBackgroundCaptured = true;
@@ -2036,24 +2040,27 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
         Activity activity = getActivity();
         WebView webView = getBridge().getWebView();
         final Float alphaToRestore;
+        final Integer layerTypeToRestore;
         final Drawable webViewBackground;
         final boolean webViewBackgroundCaptured;
         final Drawable parentBackground;
         final boolean parentBackgroundCaptured;
         synchronized (this) {
             alphaToRestore = originalWebViewAlpha;
+            layerTypeToRestore = originalWebViewLayerType;
             webViewBackground = originalWebViewBackground;
             webViewBackgroundCaptured = originalWebViewBackgroundCaptured;
             parentBackground = originalWebViewParentBackground;
             parentBackgroundCaptured = originalWebViewParentBackgroundCaptured;
             originalWebViewAlpha = null;
+            originalWebViewLayerType = null;
             originalWebViewBackground = null;
             originalWebViewBackgroundCaptured = false;
             originalWebViewParentBackground = null;
             originalWebViewParentBackgroundCaptured = false;
         }
 
-        if (alphaToRestore == null && !webViewBackgroundCaptured && !parentBackgroundCaptured) {
+        if (alphaToRestore == null && layerTypeToRestore == null && !webViewBackgroundCaptured && !parentBackgroundCaptured) {
             return;
         }
 
@@ -2072,7 +2079,9 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
                 } else {
                     webView.setBackgroundColor(DEFAULT_WEB_VIEW_BACKGROUND);
                 }
-                webView.setLayerType(View.LAYER_TYPE_NONE, null);
+                if (layerTypeToRestore != null) {
+                    webView.setLayerType(layerTypeToRestore, null);
+                }
                 if (webViewParent != null && parentBackgroundCaptured) {
                     webViewParent.setBackground(parentBackground);
                 }
