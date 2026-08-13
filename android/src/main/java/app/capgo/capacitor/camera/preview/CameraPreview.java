@@ -15,7 +15,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
@@ -54,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -104,11 +102,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
                 cameraXView.setListener(this);
             }
             if (lastSessionConfig.isToBack()) {
-                if (usesFullStackTransparentBackgroundWorkaround()) {
-                    activateTransparentBackgroundsForToBack(cameraXView);
-                } else {
-                    prepareTransparentBackgroundsForToBack(cameraXView);
-                }
+                applyToBackVisualState(cameraXView);
             } else {
                 toBackVisualStateActive = false;
             }
@@ -128,9 +122,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
         lastSessionConfig = null;
         clearActiveBarcodeScanner();
         toBackVisualStateActive = false;
-        restoreOriginalWindowBackground(getBridge().getActivity());
         restoreWebViewVisualState();
-        restoreSystemUiForToBackMode(getBridge().getActivity());
         unregisterScreenLockReceiver();
     }
 
@@ -159,16 +151,11 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
     private String lastOrientationStr = "unknown";
     private boolean lastDisableAudio = true;
     private boolean lastIncludeSafeAreaInsets = false;
-    private Drawable originalWindowBackground;
-    private boolean originalWindowBackgroundCaptured = false;
     private Drawable originalWebViewBackground;
     private boolean originalWebViewBackgroundCaptured = false;
     private Float originalWebViewAlpha;
     private Drawable originalWebViewParentBackground;
     private boolean originalWebViewParentBackgroundCaptured = false;
-    private Integer originalStatusBarColor;
-    private Integer originalNavigationBarColor;
-    private Boolean originalNavigationBarContrastEnforced;
     private volatile boolean toBackVisualStateActive = false;
     private boolean isCameraPermissionDialogShowing = false;
     private boolean pendingStartBarcodeScanner = false;
@@ -798,6 +785,9 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
         ) {
             cameraXView = new CameraXView(getContext(), getBridge().getWebView());
             cameraXView.setListener(this);
+            if (lastSessionConfig.isToBack()) {
+                applyToBackVisualState(cameraXView);
+            }
             requestBarcodeScannerRestartAfterCameraResume();
             cameraRestartAfterResumeInProgress = true;
             cameraXView.startSession(lastSessionConfig);
@@ -840,9 +830,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
                 lastSessionConfig = null;
                 clearActiveBarcodeScanner();
                 toBackVisualStateActive = false;
-                restoreOriginalWindowBackground(getBridge().getActivity());
                 restoreWebViewVisualState();
-                restoreSystemUiForToBackMode(getBridge().getActivity());
                 call.resolve();
             });
     }
@@ -1360,13 +1348,8 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
         getBridge()
             .getActivity()
             .runOnUiThread(() -> {
-                lockSystemUiForToBackMode(getBridge().getActivity(), toBack);
                 if (toBack) {
-                    if (usesFullStackTransparentBackgroundWorkaround()) {
-                        activateTransparentBackgroundsForToBack(cameraXView);
-                    } else {
-                        prepareTransparentBackgroundsForToBack(cameraXView);
-                    }
+                    applyToBackVisualState(cameraXView);
                 } else {
                     toBackVisualStateActive = false;
                 }
@@ -1985,36 +1968,6 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
         return false;
     }
 
-    private boolean isMiuiDevice() {
-        String manufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER.toLowerCase(Locale.US) : "";
-        String brand = Build.BRAND != null ? Build.BRAND.toLowerCase(Locale.US) : "";
-        return manufacturer.contains("xiaomi") || brand.contains("xiaomi") || brand.contains("redmi") || brand.contains("poco");
-    }
-
-    private boolean usesFullStackTransparentBackgroundWorkaround() {
-        String manufacturer = Build.MANUFACTURER != null ? Build.MANUFACTURER.toLowerCase(Locale.US) : "";
-        String brand = Build.BRAND != null ? Build.BRAND.toLowerCase(Locale.US) : "";
-        return (
-            isMiuiDevice() ||
-            manufacturer.contains("huawei") ||
-            manufacturer.contains("honor") ||
-            brand.contains("huawei") ||
-            brand.contains("honor")
-        );
-    }
-
-    private void captureOriginalWindowBackground(Activity activity) {
-        if (activity == null) {
-            return;
-        }
-        synchronized (this) {
-            if (!originalWindowBackgroundCaptured) {
-                originalWindowBackground = activity.getWindow().getDecorView().getBackground();
-                originalWindowBackgroundCaptured = true;
-            }
-        }
-    }
-
     private void captureOriginalWebViewVisualState(WebView webView, ViewGroup webViewParent) {
         if (webView == null) {
             return;
@@ -2034,95 +1987,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
         }
     }
 
-    private void restoreOriginalWindowBackground(Activity activity) {
-        final Drawable backgroundToRestore;
-        final boolean captured;
-        synchronized (this) {
-            backgroundToRestore = originalWindowBackground;
-            captured = originalWindowBackgroundCaptured;
-            originalWindowBackground = null;
-            originalWindowBackgroundCaptured = false;
-        }
-
-        if (!captured || activity == null) {
-            return;
-        }
-
-        activity.runOnUiThread(() -> {
-            try {
-                activity.getWindow().setBackgroundDrawable(backgroundToRestore);
-            } catch (Exception e) {
-                Log.w(TAG, "Failed to restore window background", e);
-            }
-        });
-    }
-
-    private int toOpaqueColor(int color) {
-        return Color.argb(255, Color.red(color), Color.green(color), Color.blue(color));
-    }
-
-    private void lockSystemUiForToBackMode(Activity activity, boolean toBack) {
-        if (activity == null) {
-            return;
-        }
-        if (!toBack) {
-            restoreSystemUiForToBackMode(activity);
-            return;
-        }
-
-        try {
-            if (originalStatusBarColor == null) {
-                originalStatusBarColor = activity.getWindow().getStatusBarColor();
-            }
-            if (originalNavigationBarColor == null) {
-                originalNavigationBarColor = activity.getWindow().getNavigationBarColor();
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && originalNavigationBarContrastEnforced == null) {
-                originalNavigationBarContrastEnforced = activity.getWindow().isNavigationBarContrastEnforced();
-            }
-
-            int statusBarColor = toOpaqueColor(originalStatusBarColor != null ? originalStatusBarColor : Color.BLACK);
-            int navigationBarColor = toOpaqueColor(originalNavigationBarColor != null ? originalNavigationBarColor : Color.BLACK);
-
-            activity.getWindow().setStatusBarColor(statusBarColor);
-            activity.getWindow().setNavigationBarColor(navigationBarColor);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                activity.getWindow().setNavigationBarContrastEnforced(false);
-            }
-        } catch (Exception e) {
-            Log.w(TAG, "Failed to lock system UI colors for toBack mode", e);
-        }
-    }
-
-    private void restoreSystemUiForToBackMode(Activity activity) {
-        final Integer statusBarColor = originalStatusBarColor;
-        final Integer navigationBarColor = originalNavigationBarColor;
-        final Boolean navigationBarContrastEnforced = originalNavigationBarContrastEnforced;
-        originalStatusBarColor = null;
-        originalNavigationBarColor = null;
-        originalNavigationBarContrastEnforced = null;
-
-        if (activity == null) {
-            return;
-        }
-
-        activity.runOnUiThread(() -> {
-            try {
-                if (statusBarColor != null) {
-                    activity.getWindow().setStatusBarColor(statusBarColor);
-                }
-                if (navigationBarColor != null) {
-                    activity.getWindow().setNavigationBarColor(navigationBarColor);
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && navigationBarContrastEnforced != null) {
-                    activity.getWindow().setNavigationBarContrastEnforced(navigationBarContrastEnforced);
-                }
-            } catch (Exception ignored) {}
-        });
-    }
-
-    private void prepareTransparentBackgroundsForToBack(CameraXView visualStateOwner) {
+    private void applyToBackVisualState(CameraXView visualStateOwner) {
         Activity activity = getActivity();
         WebView webView = getBridge().getWebView();
         if (activity == null || webView == null) {
@@ -2131,34 +1996,20 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
 
         toBackVisualStateActive = true;
         final ViewGroup webViewParent = (ViewGroup) webView.getParent();
-        captureOriginalWindowBackground(activity);
         captureOriginalWebViewVisualState(webView, webViewParent);
-    }
-
-    private void activateTransparentBackgroundsForToBack(CameraXView visualStateOwner) {
-        prepareTransparentBackgroundsForToBack(visualStateOwner);
-        Activity activity = getActivity();
-        WebView webView = getBridge().getWebView();
-        if (activity == null || webView == null) {
-            return;
-        }
-
-        final ViewGroup webViewParent = (ViewGroup) webView.getParent();
 
         Runnable apply = () -> {
             try {
                 if (!toBackVisualStateActive || visualStateOwner == null || cameraXView != visualStateOwner) {
                     return;
                 }
-                boolean fullStackWorkaround = usesFullStackTransparentBackgroundWorkaround();
-                if (fullStackWorkaround) {
-                    activity.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                if (ToBackCompositorHelper.shouldTransparentizeWebViewParent() && webViewParent != null) {
+                    webViewParent.setBackgroundColor(ToBackCompositorHelper.resolveWebViewBackgroundColor());
                 }
-                if (webViewParent != null && fullStackWorkaround) {
-                    webViewParent.setBackgroundColor(Color.TRANSPARENT);
-                }
-                webView.setBackgroundColor(isMiuiDevice() ? Color.argb(1, 255, 255, 255) : Color.TRANSPARENT);
-                webView.setAlpha(isMiuiDevice() ? 0.99f : (originalWebViewAlpha != null ? originalWebViewAlpha : 1f));
+                webView.setBackgroundColor(ToBackCompositorHelper.resolveWebViewBackgroundColor());
+                webView.setLayerType(ToBackCompositorHelper.resolveWebViewLayerType(), null);
+                float alpha = ToBackCompositorHelper.resolveWebViewAlpha(originalWebViewAlpha != null ? originalWebViewAlpha : 1f);
+                webView.setAlpha(alpha);
                 if (webViewParent != null) {
                     webViewParent.requestTransparentRegion(webView);
                 }
@@ -2167,20 +2018,14 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
             }
         };
 
-        activity.runOnUiThread(() -> {
-            apply.run();
-            if (isMiuiDevice()) {
-                webView.postDelayed(apply, 50);
-                webView.postDelayed(apply, 250);
-            }
-        });
+        activity.runOnUiThread(apply);
     }
 
     private void applyTransparentBackgroundsForToBack() {
         if (!isToBackMode()) {
             return;
         }
-        activateTransparentBackgroundsForToBack(cameraXView);
+        applyToBackVisualState(cameraXView);
     }
 
     private void restoreWebViewVisualState() {
@@ -2227,6 +2072,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
                 } else {
                     webView.setBackgroundColor(DEFAULT_WEB_VIEW_BACKGROUND);
                 }
+                webView.setLayerType(View.LAYER_TYPE_NONE, null);
                 if (webViewParent != null && parentBackgroundCaptured) {
                     webViewParent.setBackground(parentBackground);
                 }
@@ -2237,14 +2083,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
     @Override
     public void onCameraStarted(int width, int height, int x, int y) {
         cameraRestartAfterResumeInProgress = false;
-        // Always transition window and WebView backgrounds to transparent when the camera starts,
-        // regardless of whether there is a pending JS call. This is critical for the
-        // background/foreground resume cycle: on resume, handleOnResume() sets backgrounds to
-        // black (to prevent flicker) and then restarts the camera session, but
-        // cameraStartCallbackId is null at that point. Without this unconditional block the
-        // window and WebView stay black after every background/foreground transition.
-        // Both backgrounds are set together in the same UI thread operation to avoid race
-        // conditions and compositor layering issues.
+        // Re-apply WebView transparency after the preview is bound (idempotent safety net for resume).
         applyTransparentBackgroundsForToBack();
 
         PluginCall call = bridge.getSavedCall(cameraStartCallbackId);
@@ -2503,9 +2342,7 @@ public class CameraPreview extends Plugin implements CameraXView.CameraXViewList
             resetPendingStartBarcodeScanner();
         }
 
-        restoreOriginalWindowBackground(getBridge().getActivity());
         restoreWebViewVisualState();
-        restoreSystemUiForToBackMode(getBridge().getActivity());
     }
 
     @PluginMethod
