@@ -739,7 +739,12 @@ public class CameraXView implements LifecycleOwner, LifecycleObserver {
         previewContainer.setFocusable(true);
 
         // Disable any potential drawing artifacts that might cause 1px offset
-        previewContainer.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        boolean toBack = sessionConfig != null && sessionConfig.isToBack();
+        if (ToBackCompositorHelper.shouldUseHardwareLayerOnPreviewContainer(toBack)) {
+            previewContainer.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            previewContainer.setLayerType(View.LAYER_TYPE_NONE, null);
+        }
 
         // Ensure no clip bounds that might cause visual offset
         previewContainer.setClipChildren(false);
