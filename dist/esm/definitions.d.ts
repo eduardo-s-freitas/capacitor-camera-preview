@@ -1,0 +1,1165 @@
+import type { PermissionState, PluginListenerHandle } from '@capacitor/core';
+export type CameraPosition = 'rear' | 'front';
+export type FlashMode = CameraPreviewFlashMode;
+export type GridMode = 'none' | '3x3' | '4x4';
+export type CameraPositioning = 'center' | 'top' | 'bottom';
+export type CameraPreviewAspectRatio = '4:3' | '16:9' | 'fill';
+export type BarcodeScannerFormat = 'aztec' | 'codabar' | 'code_39' | 'code_93' | 'code_128' | 'data_matrix' | 'ean_8' | 'ean_13' | 'itf' | 'pdf417' | 'qr_code' | 'upc_a' | 'upc_e';
+export type BarcodeFormat = BarcodeScannerFormat | 'unknown';
+export interface BarcodeScannerOptions {
+    /**
+     * Restricts detection to the given formats. Leaving this empty scans all supported formats.
+     * Restricting formats can improve scanning speed.
+     */
+    formats?: BarcodeScannerFormat[];
+    /**
+     * Minimum delay between native scan attempts in milliseconds.
+     * Lower values scan more often but use more CPU.
+     * @default 500
+     */
+    detectionInterval?: number;
+}
+export interface BarcodeScanResult {
+    /** Decoded barcode value. */
+    value: string;
+    /** Barcode format. */
+    format: BarcodeFormat;
+    /** Human-readable value when the platform exposes one. */
+    displayValue?: string;
+    /** Base64-encoded raw bytes when the platform exposes them. */
+    rawBytes?: string;
+}
+export interface BarcodeScannedEvent {
+    /** Barcodes decoded from the current frame. */
+    barcodes: BarcodeScanResult[];
+}
+export interface BarcodeScanErrorEvent {
+    /** Native scanner error message. */
+    message: string;
+}
+export interface CameraPermissionStatus {
+    camera: PermissionState;
+    microphone?: PermissionState;
+}
+export interface PermissionRequestOptions {
+    disableAudio?: boolean;
+    showSettingsAlert?: boolean;
+    title?: string;
+    message?: string;
+    openSettingsButtonTitle?: string;
+    cancelButtonTitle?: string;
+}
+export declare enum DeviceType {
+    ULTRA_WIDE = "ultraWide",
+    WIDE_ANGLE = "wideAngle",
+    TELEPHOTO = "telephoto",
+    TRUE_DEPTH = "trueDepth",
+    DUAL = "dual",
+    DUAL_WIDE = "dualWide",
+    TRIPLE = "triple"
+}
+/**
+ * Represents a single camera lens on a device. A {@link CameraDevice} can have multiple lenses.
+ */
+export interface CameraLens {
+    /** A human-readable name for the lens, e.g., "Ultra-Wide". */
+    label: string;
+    /** The type of the camera lens. */
+    deviceType: DeviceType;
+    /** The focal length of the lens in millimeters. */
+    focalLength: number;
+    /** The base zoom factor for this lens (e.g., 0.5 for ultra-wide, 1.0 for wide). */
+    baseZoomRatio: number;
+    /** The minimum zoom factor supported by this specific lens. */
+    minZoom: number;
+    /** The maximum zoom factor supported by this specific lens. */
+    maxZoom: number;
+}
+/**
+ * Represents a physical camera on the device (e.g., the front-facing camera).
+ */
+export interface CameraDevice {
+    /** A unique identifier for the camera device. */
+    deviceId: string;
+    /** A human-readable name for the camera device. */
+    label: string;
+    /** The physical position of the camera on the device. */
+    position: CameraPosition;
+    /** A list of all available lenses for this camera device. */
+    lenses: CameraLens[];
+    /** The overall minimum zoom factor available across all lenses on this device. */
+    minZoom: number;
+    /** The overall maximum zoom factor available across all lenses on this device. */
+    maxZoom: number;
+    /** Identifies whether the device is a logical camera (composed of multiple physical lenses). */
+    isLogical: boolean;
+}
+/**
+ * Represents the detailed information of the currently active lens.
+ */
+export interface LensInfo {
+    /** The focal length of the active lens in millimeters. */
+    focalLength: number;
+    /** The device type of the active lens. */
+    deviceType: DeviceType;
+    /** The base zoom ratio of the active lens (e.g., 0.5x, 1.0x). */
+    baseZoomRatio: number;
+    /** The current digital zoom factor applied on top of the base zoom. */
+    digitalZoom: number;
+}
+export type VideoQuality = 'low' | 'medium' | 'high' | '2160p' | '1080p' | '720p' | '480p' | '4:3';
+/**
+ * Video codec identifiers used when recording.
+ * - `avc1`: H.264
+ * - `hvc1`: HEVC / H.265
+ */
+export type VideoCodec = 'avc1' | 'hvc1' | 'jpeg' | 'apcn' | 'ap4h';
+/**
+ * Video stabilization modes used when recording.
+ *
+ * On Android only `off` and `standard` are supported.
+ * On iOS all listed modes may be available when the device supports video stabilization.
+ */
+export type VideoStabilizationMode = 'off' | 'standard' | 'cinematic' | 'cinematicExtended' | 'previewOptimized' | 'cinematicExtendedEnhanced' | 'auto' | 'lowLatency';
+export type RecordingFinishedReason = 'manual' | 'maxDuration' | 'maxFileSize';
+export interface RecordingFinishedEvent {
+    /**
+     * The path to the recorded video file.
+     */
+    videoFilePath: string;
+    /**
+     * Why the recording stopped.
+     */
+    reason: RecordingFinishedReason;
+}
+/**
+ * Defines the configuration options for starting the camera preview.
+ */
+export interface CameraPreviewOptions {
+    /**
+     * The parent element to attach the video preview to.
+     * @platform web
+     */
+    parent?: string;
+    /**
+     * A CSS class name to add to the preview element.
+     * @platform web
+     */
+    className?: string;
+    /**
+     * The width of the preview in pixels. Defaults to the screen width.
+     * @platform android, ios, web
+     */
+    width?: number;
+    /**
+     * The height of the preview in pixels. Defaults to the screen height.
+     * @platform android, ios, web
+     */
+    height?: number;
+    /**
+     * The horizontal origin of the preview, in pixels.
+     * @platform android, ios
+     */
+    x?: number;
+    /**
+     * The vertical origin of the preview, in pixels.
+     * @platform android, ios
+     */
+    y?: number;
+    /**
+     * The aspect ratio of the camera preview, '4:3' or '16:9' or 'fill'.
+     * Cannot be set if width or height is provided, otherwise the call will be rejected.
+     * Use setPreviewSize to adjust size after starting.
+     *
+     * @since 2.0.0
+     */
+    aspectRatio?: CameraPreviewAspectRatio;
+    /**
+     * Controls how the camera preview fills the available space.
+     * - 'contain': Fits the entire preview within the space, may show letterboxing (default).
+     * - 'cover': Fills the entire space, may crop edges of the preview.
+     * @default "contain"
+     * @platform android, ios, web
+     */
+    aspectMode?: 'cover' | 'contain';
+    /**
+     * The grid overlay to display on the camera preview.
+     * @default "none"
+     * @since 2.1.0
+     */
+    gridMode?: GridMode;
+    /**
+     * Adjusts the y-position to account for safe areas (e.g., notches).
+     * @platform android, ios
+     * @default false
+     */
+    includeSafeAreaInsets?: boolean;
+    /**
+     * If true, places the preview behind the webview.
+     * @platform android
+     * @default true
+     */
+    toBack?: boolean;
+    /**
+     * Bottom padding for the preview, in pixels.
+     * @platform android, ios
+     */
+    paddingBottom?: number;
+    /**
+     * Whether to rotate the preview when the device orientation changes.
+     * @platform ios
+     * @default true
+     */
+    rotateWhenOrientationChanged?: boolean;
+    /**
+     * The camera to use.
+     * @default "rear"
+     */
+    position?: CameraPosition | string;
+    /**
+     * If true, saves the captured image to a file and returns the file path.
+     * If false, returns a base64 encoded string.
+     * @default false
+     */
+    storeToFile?: boolean;
+    /**
+     * If true, prevents the plugin from rotating the image based on EXIF data.
+     * @platform android
+     * @default false
+     */
+    disableExifHeaderStripping?: boolean;
+    /**
+     * If true, disables the audio stream, preventing audio permission requests.
+     * @default true
+     */
+    disableAudio?: boolean;
+    /**
+     * If true, locks the device orientation while the camera is active.
+     * @platform android
+     * @default false
+     */
+    lockAndroidOrientation?: boolean;
+    /**
+     * If true, allows the camera preview's opacity to be changed.
+     * @platform android, web
+     * @default false
+     */
+    enableOpacity?: boolean;
+    /**
+     * If true, disables the visual focus indicator when tapping to focus.
+     * @platform android, ios
+     * @default false
+     */
+    disableFocusIndicator?: boolean;
+    /**
+     * The `deviceId` of the camera to use. If provided, `position` is ignored.
+     * @platform ios
+     */
+    deviceId?: string;
+    /**
+     * On Android, attempts to bind a physical camera directly when `deviceId` refers to a physical lens.
+     * Disabled by default because OEM support is inconsistent; when false, Android keeps the current logical-camera fallback behavior.
+     * @default false
+     * @platform android
+     */
+    enablePhysicalDeviceSelection?: boolean;
+    /**
+     * The initial zoom level when starting the camera preview.
+     * If the requested zoom level is not available, the native plugin will reject.
+     * @default 1.0
+     * @platform android, ios
+     * @since 2.2.0
+     */
+    initialZoomLevel?: number;
+    /**
+     * The vertical positioning of the camera preview.
+     * @default "center"
+     * @platform android, ios, web
+     * @since 2.3.0
+     */
+    positioning?: CameraPositioning;
+    /**
+     * If true, enables video capture capabilities when the camera starts.
+     * @default false
+     * @platform android, ios
+     * @since 7.11.0
+     */
+    enableVideoMode?: boolean;
+    /**
+     * If true, forces the camera to start/restart even if it's already running or busy.
+     * This will kill the current camera session and start a new one, ignoring all state checks.
+     * @default false
+     * @platform android, ios, web
+     */
+    force?: boolean;
+    /**
+     * Sets the quality of video for recording.
+     * Options: 'low', 'medium', 'high', '2160p', '1080p', '720p', '480p', '4:3'
+     * @note On Android requires 'enableVideoMode' to be true
+     * @note Will affect the entire preview stream for iOS
+     * @platform ios, android
+     * @default "high"
+     */
+    videoQuality?: VideoQuality;
+    /**
+     * Maximum recording duration in seconds. Recording stops automatically when reached.
+     * @platform ios, android
+     */
+    maxDuration?: number;
+    /**
+     * Maximum recording file size in bytes. Recording stops automatically when reached.
+     * @platform ios, android
+     */
+    maxFileSize?: number;
+    /**
+     * Preferred video codec for recording.
+     * @platform ios, android
+     * @default "avc1"
+     */
+    videoCodec?: VideoCodec;
+    /**
+     * Target video frame rate in frames per second.
+     * Applied when recording starts. Use `getSupportedVideoFrameRates()` to list supported values.
+     * @platform ios, android
+     * @since 8.6.0
+     */
+    frameRate?: number;
+    /**
+     * Preferred video stabilization mode for recording.
+     * @platform ios, android
+     * @default "off"
+     */
+    videoStabilizationMode?: VideoStabilizationMode;
+    /**
+     * When `true`, allows haptic feedback and system sounds while recording video with audio.
+     * iOS suppresses haptics during audio input recording unless this is enabled.
+     * Requires `disableAudio: false`.
+     * @platform ios
+     * @default false
+     * @since 8.8.0
+     */
+    allowHapticsAndSystemSoundsDuringRecording?: boolean;
+    /**
+     * When `true` and the front camera is active, mirrors the recorded video file
+     * so it matches the selfie-style preview (text and gestures are not reversed).
+     * Does not affect the live preview. Defaults to `false` to preserve existing behavior.
+     * @platform ios, android
+     * @default false
+     * @since 8.10.0
+     */
+    mirrorFrontCamera?: boolean;
+    /**
+     * Starts barcode scanning together with the camera preview.
+     * Set to `true` or pass options to scan all supported formats.
+     * Omit this option to keep barcode scanning disabled at startup.
+     * @platform android, ios, web
+     * @since 8.8.0
+     */
+    barcodeScanner?: boolean | BarcodeScannerOptions;
+}
+/**
+ * Defines the options for capturing a picture.
+ */
+export interface CameraPreviewPictureOptions {
+    /**
+     * The maximum height of the picture in pixels. The image will be resized to fit within this height while maintaining aspect ratio.
+     * If not specified the captured image will match the preview's visible area.
+     */
+    height?: number;
+    /**
+     * The maximum width of the picture in pixels. The image will be resized to fit within this width while maintaining aspect ratio.
+     * If not specified the captured image will match the preview's visible area.
+     */
+    width?: number;
+    /**
+     * The quality of the captured image, from 0 to 100.
+     * Does not apply to `png` format.
+     * @default 85
+     */
+    quality?: number;
+    /**
+     * The format of the captured image.
+     * @default "jpeg"
+     */
+    format?: PictureFormat;
+    /**
+     * If true, the captured image will be saved to the user's gallery.
+     * @default false
+     * @since 7.5.0
+     */
+    saveToGallery?: boolean;
+    /**
+     * If true, the plugin will attempt to add GPS location data to the image's EXIF metadata.
+     * This may prompt the user for location permissions.
+     * @default false
+     * @since 7.6.0
+     */
+    withExifLocation?: boolean;
+    /**
+     * If true, the plugin will embed a timestamp in the top-right corner of the image.
+     * @default false
+     * @since 7.17.0
+     */
+    embedTimestamp?: boolean;
+    /**
+     * If true, the plugin will embed the current location in the top-right corner of the image.
+     * Requires `withExifLocation` to be enabled.
+     * @default false
+     * @since 7.18.0
+     */
+    embedLocation?: boolean;
+    /**
+     * Sets the priority for photo quality vs. capture speed.
+     * - "speed": Prioritizes faster capture times, may reduce image quality.
+     * - "balanced": Aims for a balance between quality and speed.
+     * - "quality": Prioritizes image quality, may reduce capture speed.
+     * See https://developer.apple.com/documentation/avfoundation/avcapturephotosettings/photoqualityprioritization for details.
+     *
+     * @since 7.21.0
+     * @platform ios
+     * @default "speed"
+     */
+    photoQualityPrioritization?: 'speed' | 'balanced' | 'quality';
+    /**
+     * If true and the front camera is active, horizontally mirror the captured photo
+     * so it matches a selfie-style preview. Rear camera captures are never mirrored.
+     * Defaults to false to preserve the previous non-mirrored behavior.
+     * @default false
+     * @since 8.10.0
+     */
+    mirrorFrontCamera?: boolean;
+}
+/** Represents EXIF data extracted from an image. */
+export interface ExifData {
+    [key: string]: any;
+}
+export type PictureFormat = 'jpeg' | 'png';
+/** Defines a standard picture size with width and height. */
+export interface PictureSize {
+    /** The width of the picture in pixels. */
+    width: number;
+    /** The height of the picture in pixels. */
+    height: number;
+}
+/** Represents the supported picture sizes for a camera facing a certain direction. */
+export interface SupportedPictureSizes {
+    /** The camera direction ("front" or "rear"). */
+    facing: string;
+    /** A list of supported picture sizes for this camera. */
+    supportedPictureSizes: PictureSize[];
+}
+/**
+ * Defines the options for capturing a sample frame from the camera preview.
+ */
+export interface CameraSampleOptions {
+    /**
+     * The quality of the captured sample, from 0 to 100.
+     * @default 85
+     */
+    quality?: number;
+    /**
+     * If true and the front camera is active, horizontally mirror the captured sample
+     * so it matches a selfie-style preview. Rear camera samples are never mirrored.
+     * Defaults to false to preserve the previous non-mirrored behavior.
+     * @default false
+     * @since 8.10.0
+     */
+    mirrorFrontCamera?: boolean;
+}
+/**
+ * The available flash modes for the camera.
+ * 'torch' is a continuous light mode.
+ */
+export type CameraPreviewFlashMode = 'off' | 'on' | 'auto' | 'torch';
+/** Reusable exposure mode type for cross-platform support. */
+export type ExposureMode = 'AUTO' | 'LOCK' | 'CONTINUOUS' | 'CUSTOM';
+/**
+ * Reusable white-balance mode type for cross-platform support.
+ * `CUSTOM` is reserved for a future manual white-balance gains API and is not
+ * returned by `getWhiteBalanceModes()` until implemented.
+ */
+export type WhiteBalanceMode = 'AUTO' | 'LOCK' | 'CONTINUOUS' | 'CUSTOM';
+/**
+ * Defines the options for setting the camera preview's opacity.
+ */
+export interface CameraOpacityOptions {
+    /**
+     * The opacity percentage, from 0.0 (fully transparent) to 1.0 (fully opaque).
+     * @default 1.0
+     */
+    opacity?: number;
+}
+/**
+ * Represents safe area insets for devices.
+ * Android: Values are expressed in logical pixels (dp) to match JS layout units.
+ * iOS: Values are expressed in physical pixels and exclude status bar.
+ */
+export interface SafeAreaInsets {
+    /** Current device orientation (1 = portrait, 2 = landscape, 0 = unknown). */
+    orientation: number;
+    /**
+     * Orientation-aware notch/camera cutout inset (excluding status bar).
+     * In portrait mode: returns top inset (notch at top).
+     * In landscape mode: returns left inset (notch at side).
+     * Android: Value in dp, iOS: Value in pixels (status bar excluded).
+     */
+    top: number;
+}
+/**
+ * Canonical device orientation values across platforms.
+ */
+export type DeviceOrientation = 'portrait' | 'landscape-left' | 'landscape-right' | 'portrait-upside-down' | 'unknown';
+/**
+ * The main interface for the CameraPreview plugin.
+ */
+export interface CameraPreviewPlugin {
+    /**
+     * Starts the camera preview.
+     *
+     * @param {CameraPreviewOptions} options - The configuration for the camera preview.
+     * @returns {Promise<{ width: number; height: number; x: number; y: number }>} A promise that resolves with the preview dimensions.
+     * @since 0.0.1
+     */
+    start(options: CameraPreviewOptions): Promise<{
+        /** The width of the preview in pixels. */
+        width: number;
+        /** The height of the preview in pixels. */
+        height: number;
+        /** The horizontal origin of the preview, in pixels. */
+        x: number;
+        /** The vertical origin of the preview, in pixels. */
+        y: number;
+    }>;
+    /**
+     * Stops the camera preview.
+     *
+     * @param {object} options - Optional configuration for stopping the camera.
+     * @param {boolean} options.force - If true, forces the camera to stop even if busy or capturing. Default: false.
+     * @returns {Promise<void>} A promise that resolves when the camera preview is stopped.
+     * @since 0.0.1
+     */
+    stop(options?: {
+        force?: boolean;
+    }): Promise<void>;
+    /**
+     * Captures a picture from the camera.
+     *
+     * If `storeToFile` was set to `true` when starting the preview, the returned
+     * `value` will be an absolute file path on the device instead of a base64 string. Use getBase64FromFilePath to get the base64 string from the file path.
+     *
+     * @param {CameraPreviewPictureOptions} options - The options for capturing the picture.
+     * @returns {Promise<{ value: string; exif: ExifData }>} Resolves with:
+     *   - `value`: base64 string, or file path if `storeToFile` is true
+     *   - `exif`: extracted EXIF metadata when available
+     * @since 0.0.1
+     */
+    capture(options: CameraPreviewPictureOptions): Promise<{
+        value: string;
+        exif: ExifData;
+    }>;
+    /**
+     * Captures a single frame from the camera preview stream.
+     *
+     * @param {CameraSampleOptions} options - The options for capturing the sample.
+     * @returns {Promise<{ value: string }>} A promise that resolves with the sample image as a base64 encoded string.
+     * @since 0.0.1
+     */
+    captureSample(options: CameraSampleOptions): Promise<{
+        value: string;
+    }>;
+    /**
+     * Starts barcode scanning on the active camera preview.
+     *
+     * The scanner reuses the current camera session and emits `barcodeScanned` events.
+     * Call `stopBarcodeScanner()` when scanning is no longer needed.
+     *
+     * Android uses the lightweight Google Play Services ML Kit model. If the model is not installed yet,
+     * first scans may return no result until Google Play Services finishes downloading it.
+     *
+     * @since 8.8.0
+     * @platform android, ios, web
+     */
+    startBarcodeScanner(options?: BarcodeScannerOptions): Promise<void>;
+    /**
+     * Stops barcode scanning while keeping the camera preview running.
+     *
+     * @since 8.8.0
+     * @platform android, ios, web
+     */
+    stopBarcodeScanner(): Promise<void>;
+    /**
+     * Gets the flash modes supported by the active camera.
+     *
+     * @returns {Promise<{ result: CameraPreviewFlashMode[] }>} A promise that resolves with an array of supported flash modes.
+     * @since 0.0.1
+     */
+    getSupportedFlashModes(): Promise<{
+        result: CameraPreviewFlashMode[];
+    }>;
+    /**
+     * Set the aspect ratio of the camera preview.
+     *
+     * @param {{ aspectRatio: CameraPreviewAspectRatio; x?: number; y?: number }} options - The desired aspect ratio and optional position.
+     *   - aspectRatio: The desired aspect ratio ('4:3', '16:9', or 'fill')
+     *   - x: Optional x coordinate for positioning. If not provided, view will be auto-centered horizontally.
+     *   - y: Optional y coordinate for positioning. If not provided, view will be auto-centered vertically.
+     * @returns {Promise<{ width: number; height: number; x: number; y: number }>} A promise that resolves with the actual preview dimensions and position.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    setAspectRatio(options: {
+        aspectRatio: CameraPreviewAspectRatio;
+        x?: number;
+        y?: number;
+    }): Promise<{
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+    }>;
+    /**
+     * Gets the current aspect ratio of the camera preview.
+     *
+     * @returns {Promise<{ aspectRatio: CameraPreviewAspectRatio }>} A promise that resolves with the current aspect ratio.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getAspectRatio(): Promise<{
+        aspectRatio: CameraPreviewAspectRatio;
+    }>;
+    /**
+     * Sets the grid mode of the camera preview overlay.
+     *
+     * @param {{ gridMode: GridMode }} options - The desired grid mode ('none', '3x3', or '4x4').
+     * @returns {Promise<void>} A promise that resolves when the grid mode is set.
+     * @since 8.0.0
+     */
+    setGridMode(options: {
+        gridMode: GridMode;
+    }): Promise<void>;
+    /**
+     * Gets the current grid mode of the camera preview overlay.
+     *
+     * @returns {Promise<{ gridMode: GridMode }>} A promise that resolves with the current grid mode.
+     * @since 8.0.0
+     */
+    getGridMode(): Promise<{
+        gridMode: GridMode;
+    }>;
+    /**
+     * Checks the current camera (and optionally microphone) permission status without prompting the system dialog.
+     *
+     * @param options Set `disableAudio` to `false` to also include microphone status (defaults to `true`).
+     * @returns {Promise<CameraPermissionStatus>} A promise resolving to the current authorization states.
+     * @since 8.7.0
+     */
+    checkPermissions(options?: Pick<PermissionRequestOptions, 'disableAudio'>): Promise<CameraPermissionStatus>;
+    /**
+     * Requests camera (and optional microphone) permissions. If permissions are already granted or denied,
+     * the current status is returned without prompting. When `showSettingsAlert` is true and permissions are denied,
+     * a platform specific alert guiding the user to the app settings will be presented.
+     *
+     * @param {PermissionRequestOptions} options - Configuration for the permission request behaviour.
+     * @returns {Promise<CameraPermissionStatus>} A promise resolving to the final authorization states.
+     * @since 8.7.0
+     */
+    requestPermissions(options?: PermissionRequestOptions): Promise<CameraPermissionStatus>;
+    /**
+     * Gets the horizontal field of view (FoV) for the active camera.
+     * Note: This can be an estimate on some devices.
+     *
+     * @returns {Promise<{ result: number }>} A promise that resolves with the horizontal field of view in degrees.
+     * @since 0.0.1
+     */
+    getHorizontalFov(): Promise<{
+        result: number;
+    }>;
+    /**
+     * Gets the supported picture sizes for all cameras.
+     *
+     * @returns {Promise<{ supportedPictureSizes: SupportedPictureSizes[] }>} A promise that resolves with the list of supported sizes.
+     * @since 7.4.0
+     */
+    getSupportedPictureSizes(): Promise<{
+        supportedPictureSizes: SupportedPictureSizes[];
+    }>;
+    /**
+     * Sets the flash mode for the active camera.
+     *
+     * @param {{ flashMode: CameraPreviewFlashMode | string }} options - The desired flash mode.
+     * @returns {Promise<void>} A promise that resolves when the flash mode is set.
+     * @since 0.0.1
+     */
+    setFlashMode(options: {
+        flashMode: CameraPreviewFlashMode | string;
+    }): Promise<void>;
+    /**
+     * Toggles between the front and rear cameras.
+     *
+     * @returns {Promise<void>} A promise that resolves when the camera is flipped.
+     * @since 0.0.1
+     */
+    flip(): Promise<void>;
+    /**
+     * Sets the opacity of the camera preview.
+     *
+     * @param {CameraOpacityOptions} options - The opacity options.
+     * @returns {Promise<void>} A promise that resolves when the opacity is set.
+     * @since 0.0.1
+     */
+    setOpacity(options: CameraOpacityOptions): Promise<void>;
+    /**
+     * Stops an ongoing video recording.
+     *
+     * @returns {Promise<RecordingFinishedEvent>} A promise that resolves with the path to the recorded video file.
+     * @since 0.0.1
+     */
+    stopRecordVideo(): Promise<RecordingFinishedEvent>;
+    /**
+     * Starts recording a video.
+     *
+     * Supports `frameRate`, `videoCodec`, `videoStabilizationMode`, `maxDuration`, `maxFileSize`, `disableAudio`, `allowHapticsAndSystemSoundsDuringRecording`, and `mirrorFrontCamera` on each call.
+     *
+     * @param {CameraPreviewOptions} options - The options for video recording.
+     * @returns {Promise<void>} A promise that resolves when video recording starts.
+     * @since 0.0.1
+     */
+    startRecordVideo(options: CameraPreviewOptions): Promise<void>;
+    /**
+     * Sets the video recording quality for the active camera session.
+     *
+     * @param {{ quality: VideoQuality }} options - The desired video quality.
+     * @returns {Promise<void>} A promise that resolves when the quality is set.
+     * @since 8.5.0
+     * @platform android, ios
+     */
+    setVideoQuality(options: {
+        quality: VideoQuality;
+    }): Promise<void>;
+    /**
+     * Gets the current video recording quality.
+     *
+     * @returns {Promise<{ quality: VideoQuality }>} A promise that resolves with the current quality.
+     * @since 8.5.0
+     * @platform android, ios
+     */
+    getVideoQuality(): Promise<{
+        quality: VideoQuality;
+    }>;
+    /**
+     * Returns the video qualities supported by the active camera.
+     *
+     * @returns {Promise<{ qualities: VideoQuality[] }>} A promise that resolves with supported qualities.
+     * @since 8.5.0
+     * @platform android, ios
+     */
+    getSupportedVideoQualities(): Promise<{
+        qualities: VideoQuality[];
+    }>;
+    /**
+     * Sets the video codec used when recording.
+     *
+     * @param {{ codec: VideoCodec }} options - The desired codec.
+     * @returns {Promise<void>} A promise that resolves when the codec is set.
+     * @since 8.5.0
+     * @platform android, ios
+     */
+    setVideoCodec(options: {
+        codec: VideoCodec;
+    }): Promise<void>;
+    /**
+     * Gets the current video codec used for recording.
+     *
+     * @returns {Promise<{ codec: VideoCodec }>} A promise that resolves with the current codec.
+     * @since 8.5.0
+     * @platform android, ios
+     */
+    getVideoCodec(): Promise<{
+        codec: VideoCodec;
+    }>;
+    /**
+     * Returns the video codecs supported by the active camera.
+     *
+     * @returns {Promise<{ codecs: VideoCodec[] }>} A promise that resolves with supported codecs.
+     * @since 8.5.0
+     * @platform android, ios
+     */
+    getSupportedVideoCodecs(): Promise<{
+        codecs: VideoCodec[];
+    }>;
+    /**
+     * Checks whether video stabilization is supported by the active camera.
+     *
+     * @returns {Promise<{ supported: boolean }>} A promise that resolves with the support state.
+     * @since 8.5.2
+     * @platform android, ios
+     */
+    isVideoStabilizationSupported(): Promise<{
+        supported: boolean;
+    }>;
+    /**
+     * Returns the video stabilization modes supported by the active camera.
+     *
+     * @returns {Promise<{ modes: VideoStabilizationMode[] }>} A promise that resolves with supported modes.
+     * @since 8.5.2
+     * @platform android, ios
+     */
+    getSupportedVideoStabilizationModes(): Promise<{
+        modes: VideoStabilizationMode[];
+    }>;
+    /**
+     * Gets the current video stabilization mode.
+     *
+     * @returns {Promise<{ mode: VideoStabilizationMode }>} A promise that resolves with the current mode.
+     * @since 8.5.2
+     * @platform android, ios
+     */
+    getVideoStabilizationMode(): Promise<{
+        mode: VideoStabilizationMode;
+    }>;
+    /**
+     * Sets the video stabilization mode for recording.
+     * Cannot be changed while a recording is in progress.
+     * You can also pass `videoStabilizationMode` in `startRecordVideo()` options.
+     *
+     * @param {{ mode: VideoStabilizationMode }} options - The desired stabilization mode.
+     * @returns {Promise<void>} A promise that resolves when the mode is set.
+     * @since 8.5.2
+     * @platform android, ios
+     */
+    setVideoStabilizationMode(options: {
+        mode: VideoStabilizationMode;
+    }): Promise<void>;
+    /**
+     * Checks if the camera preview is currently running.
+     *
+     * @returns {Promise<{ isRunning: boolean }>} A promise that resolves with the running state.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    isRunning(): Promise<{
+        isRunning: boolean;
+    }>;
+    /**
+     * Gets all available camera devices.
+     *
+     * @returns {Promise<{ devices: CameraDevice[] }>} A promise that resolves with the list of available camera devices.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getAvailableDevices(): Promise<{
+        devices: CameraDevice[];
+    }>;
+    /**
+     * Gets the current zoom state, including min/max and current lens info.
+     *
+     * @returns {Promise<{ min: number; max: number; current: number; lens: LensInfo }>} A promise that resolves with the zoom state.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getZoom(): Promise<{
+        min: number;
+        max: number;
+        current: number;
+        lens: LensInfo;
+    }>;
+    /**
+     * Returns zoom button values for quick switching.
+     * - iOS/Android: includes 0.5 if ultra-wide available; 1 and 2 if wide available; 3 if telephoto available
+     * - Web: unsupported
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getZoomButtonValues(): Promise<{
+        values: number[];
+    }>;
+    /**
+     * Sets the zoom level of the camera.
+     *
+     * @param {{ level: number; ramp?: boolean; autoFocus?: boolean }} options - The desired zoom level. `ramp` is currently unused. `autoFocus` defaults to true.
+     * @returns {Promise<void>} A promise that resolves when the zoom level is set.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    setZoom(options: {
+        level: number;
+        ramp?: boolean;
+        autoFocus?: boolean;
+    }): Promise<void>;
+    /**
+     * Gets the current flash mode.
+     *
+     * @returns {Promise<{ flashMode: FlashMode }>} A promise that resolves with the current flash mode.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getFlashMode(): Promise<{
+        flashMode: FlashMode;
+    }>;
+    /**
+     * Removes all registered listeners.
+     *
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    removeAllListeners(): Promise<void>;
+    /**
+     * Switches the active camera to the one with the specified `deviceId`.
+     *
+     * @param {{ deviceId: string }} options - The ID of the device to switch to.
+     * @returns {Promise<void>} A promise that resolves when the camera is switched.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    setDeviceId(options: {
+        deviceId: string;
+    }): Promise<void>;
+    /**
+     * Gets the ID of the camera device that is currently bound.
+     * On Android, if a physical-lens request falls back to a logical camera, this returns the bound logical camera ID.
+     *
+     * @returns {Promise<{ deviceId: string }>} A promise that resolves with the current device ID.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getDeviceId(): Promise<{
+        deviceId: string;
+    }>;
+    /**
+     * Gets the current preview size and position.
+     * @returns {Promise<{x: number, y: number, width: number, height: number}>}
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getPreviewSize(): Promise<{
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+    }>;
+    /**
+     * Sets the preview size and position.
+     * @param options The new position and dimensions.
+     * @returns {Promise<{ width: number; height: number; x: number; y: number }>} A promise that resolves with the actual preview dimensions and position.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    setPreviewSize(options: {
+        x?: number;
+        y?: number;
+        width: number;
+        height: number;
+    }): Promise<{
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+    }>;
+    /**
+     * Sets the camera focus to a specific point in the preview.
+     *
+     * Note: The plugin does not attach any native tap-to-focus gesture handlers. Handle taps in
+     * your HTML/JS (e.g., on the overlaying UI), then pass normalized coordinates here.
+     *
+     * @param {Object} options - The focus options.
+     * @param {number} options.x - The x coordinate in the preview view to focus on (0-1 normalized).
+     * @param {number} options.y - The y coordinate in the preview view to focus on (0-1 normalized).
+     * @returns {Promise<void>} A promise that resolves when the focus is set.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    setFocus(options: {
+        x: number;
+        y: number;
+    }): Promise<void>;
+    /**
+     * Adds a listener for screen resize events.
+     * @param {string} eventName - The event name to listen for.
+     * @param {Function} listenerFunc - The function to call when the event is triggered.
+     * @returns {Promise<PluginListenerHandle>} A promise that resolves with a handle to the listener.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    addListener(eventName: 'screenResize', listenerFunc: (data: {
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+    }) => void): Promise<PluginListenerHandle>;
+    /**
+     * Adds a listener for orientation change events.
+     * @param {string} eventName - The event name to listen for.
+     * @param {Function} listenerFunc - The function to call when the event is triggered.
+     * @returns {Promise<PluginListenerHandle>} A promise that resolves with a handle to the listener.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    addListener(eventName: 'orientationChange', listenerFunc: (data: {
+        orientation: DeviceOrientation;
+    }) => void): Promise<PluginListenerHandle>;
+    /**
+     * Adds a listener for barcode scan results.
+     *
+     * @since 8.8.0
+     * @platform android, ios, web
+     */
+    addListener(eventName: 'barcodeScanned', listenerFunc: (data: BarcodeScannedEvent) => void): Promise<PluginListenerHandle>;
+    /**
+     * Adds a listener for non-fatal barcode scanner errors.
+     *
+     * @since 8.8.0
+     * @platform android, web
+     */
+    addListener(eventName: 'barcodeScanError', listenerFunc: (data: BarcodeScanErrorEvent) => void): Promise<PluginListenerHandle>;
+    /**
+     * Adds a listener fired when a video recording finishes natively, including automatic stops.
+     *
+     * @since 8.4.7
+     * @platform android, ios
+     */
+    addListener(eventName: 'recordingFinished', listenerFunc: (data: RecordingFinishedEvent) => void): Promise<PluginListenerHandle>;
+    /**
+     * Deletes a file at the given absolute path on the device.
+     * Use this to quickly clean up temporary images created with `storeToFile`.
+     * On web, this is not supported and will throw.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    deleteFile(options: {
+        path: string;
+    }): Promise<{
+        success: boolean;
+    }>;
+    /**
+     * Gets the safe area insets for devices.
+     * Returns the orientation-aware notch/camera cutout inset and the current orientation.
+     * In portrait mode: returns top inset (notch at top).
+     * In landscape mode: returns left inset (notch moved to side).
+     * This specifically targets the cutout area (notch, punch hole, etc.) that all modern phones have.
+     *
+     * Android: Values returned in dp (logical pixels).
+     * iOS: Values returned in physical pixels, excluding status bar (only pure notch/cutout size).
+     *
+     * @platform android, ios
+     */
+    getSafeAreaInsets(): Promise<SafeAreaInsets>;
+    /**
+     * Gets the current device orientation in a cross-platform format.
+     * @since 7.5.0
+     * @platform android, ios
+     */
+    getOrientation(): Promise<{
+        orientation: DeviceOrientation;
+    }>;
+    /**
+     * Returns the exposure modes supported by the active camera.
+     * Modes can include: 'locked', 'auto', 'continuous', 'custom'.
+     * @platform android, ios
+     */
+    getExposureModes(): Promise<{
+        modes: ExposureMode[];
+    }>;
+    /**
+     * Returns the current exposure mode.
+     * @platform android, ios
+     */
+    getExposureMode(): Promise<{
+        mode: ExposureMode;
+    }>;
+    /**
+     * Sets the exposure mode.
+     * @platform android, ios
+     */
+    setExposureMode(options: {
+        mode: ExposureMode;
+    }): Promise<void>;
+    /**
+     * Returns the exposure compensation (EV bias) supported range.
+     * @platform ios, android
+     */
+    getExposureCompensationRange(): Promise<{
+        min: number;
+        max: number;
+        step: number;
+    }>;
+    /**
+     * Returns the current exposure compensation (EV bias).
+     * @platform ios, android
+     */
+    getExposureCompensation(): Promise<{
+        value: number;
+    }>;
+    /**
+     * Sets the exposure compensation (EV bias). Value will be clamped to range.
+     * @platform ios, android
+     */
+    setExposureCompensation(options: {
+        value: number;
+    }): Promise<void>;
+    /**
+     * Returns the white-balance modes supported by the active camera.
+     * Modes can include: 'AUTO', 'LOCK', 'CONTINUOUS'. `CUSTOM` is not listed
+     * until manual gains support is implemented.
+     * @platform android, ios
+     */
+    getWhiteBalanceModes(): Promise<{
+        modes: WhiteBalanceMode[];
+    }>;
+    /**
+     * Returns the current white-balance mode.
+     * @platform android, ios
+     */
+    getWhiteBalanceMode(): Promise<{
+        mode: WhiteBalanceMode;
+    }>;
+    /**
+     * Sets the white-balance mode. `CONTINUOUS` keeps auto white balance running
+     * (recommended; avoids a warm/yellow cast), `LOCK` freezes the current gains,
+     * `AUTO` performs a one-time adjustment. `CUSTOM` is reserved and rejected
+     * until manual gains support is implemented.
+     * @platform android, ios
+     */
+    setWhiteBalanceMode(options: {
+        mode: WhiteBalanceMode;
+    }): Promise<void>;
+    /**
+     * Lists the video frame rates supported by the active camera for the current format.
+     * Supported values depend on the selected camera, lens, and video quality.
+     *
+     * @platform android, ios
+     * @since 8.6.0
+     */
+    getSupportedVideoFrameRates(): Promise<{
+        frameRates: number[];
+    }>;
+    /**
+     * Returns the configured video frame rate for the active camera.
+     * On Android the actual recording frame rate can still vary in low light or under thermal pressure.
+     *
+     * @platform android, ios
+     * @since 8.6.0
+     */
+    getVideoFrameRate(): Promise<{
+        frameRate: number;
+    }>;
+    /**
+     * Sets the target video frame rate for the active camera session.
+     * Prefer passing `frameRate` to `startRecordVideo()` when starting a recording.
+     * Rejects unsupported values with a clear error.
+     *
+     * @platform android, ios
+     * @since 8.6.0
+     */
+    setVideoFrameRate(options: {
+        frameRate: number;
+    }): Promise<void>;
+    /**
+     * Get the native Capacitor plugin version
+     *
+     * @returns {Promise<{ id: string }>} an Promise with version for this device
+     * @throws An error if the something went wrong
+     */
+    getPluginVersion(): Promise<{
+        version: string;
+    }>;
+}

@@ -1,5 +1,6 @@
 # node files
-dist
+# dist is committed on the vybt branch — see FORK.md
+# dist
 node_modules
 package-lock.json
 

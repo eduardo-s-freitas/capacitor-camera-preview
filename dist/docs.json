@@ -1,0 +1,3348 @@
+{
+  "api": {
+    "name": "CameraPreviewPlugin",
+    "slug": "camerapreviewplugin",
+    "docs": "The main interface for the CameraPreview plugin.",
+    "tags": [],
+    "methods": [
+      {
+        "name": "start",
+        "signature": "(options: CameraPreviewOptions) => Promise<{ width: number; height: number; x: number; y: number; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The configuration for the camera preview.",
+            "type": "CameraPreviewOptions"
+          }
+        ],
+        "returns": "Promise<{ width: number; height: number; x: number; y: number; }>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The configuration for the camera preview."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the preview dimensions."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Starts the camera preview.",
+        "complexTypes": [
+          "CameraPreviewOptions"
+        ],
+        "slug": "start"
+      },
+      {
+        "name": "stop",
+        "signature": "(options?: { force?: boolean | undefined; } | undefined) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- Optional configuration for stopping the camera.",
+            "type": "{ force?: boolean | undefined; } | undefined"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - Optional configuration for stopping the camera."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the camera preview is stopped."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Stops the camera preview.",
+        "complexTypes": [],
+        "slug": "stop"
+      },
+      {
+        "name": "capture",
+        "signature": "(options: CameraPreviewPictureOptions) => Promise<{ value: string; exif: ExifData; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The options for capturing the picture.",
+            "type": "CameraPreviewPictureOptions"
+          }
+        ],
+        "returns": "Promise<{ value: string; exif: ExifData; }>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The options for capturing the picture."
+          },
+          {
+            "name": "returns",
+            "text": "Resolves with:\n- `value`: base64 string, or file path if `storeToFile` is true\n- `exif`: extracted EXIF metadata when available"
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Captures a picture from the camera.\n\nIf `storeToFile` was set to `true` when starting the preview, the returned\n`value` will be an absolute file path on the device instead of a base64 string. Use getBase64FromFilePath to get the base64 string from the file path.",
+        "complexTypes": [
+          "ExifData",
+          "CameraPreviewPictureOptions"
+        ],
+        "slug": "capture"
+      },
+      {
+        "name": "captureSample",
+        "signature": "(options: CameraSampleOptions) => Promise<{ value: string; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The options for capturing the sample.",
+            "type": "CameraSampleOptions"
+          }
+        ],
+        "returns": "Promise<{ value: string; }>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The options for capturing the sample."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the sample image as a base64 encoded string."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Captures a single frame from the camera preview stream.",
+        "complexTypes": [
+          "CameraSampleOptions"
+        ],
+        "slug": "capturesample"
+      },
+      {
+        "name": "startBarcodeScanner",
+        "signature": "(options?: BarcodeScannerOptions | undefined) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "BarcodeScannerOptions | undefined"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "8.8.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios, web"
+          }
+        ],
+        "docs": "Starts barcode scanning on the active camera preview.\n\nThe scanner reuses the current camera session and emits `barcodeScanned` events.\nCall `stopBarcodeScanner()` when scanning is no longer needed.\n\nAndroid uses the lightweight Google Play Services ML Kit model. If the model is not installed yet,\nfirst scans may return no result until Google Play Services finishes downloading it.",
+        "complexTypes": [
+          "BarcodeScannerOptions"
+        ],
+        "slug": "startbarcodescanner"
+      },
+      {
+        "name": "stopBarcodeScanner",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "8.8.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios, web"
+          }
+        ],
+        "docs": "Stops barcode scanning while keeping the camera preview running.",
+        "complexTypes": [],
+        "slug": "stopbarcodescanner"
+      },
+      {
+        "name": "getSupportedFlashModes",
+        "signature": "() => Promise<{ result: CameraPreviewFlashMode[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ result: CameraPreviewFlashMode[]; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with an array of supported flash modes."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Gets the flash modes supported by the active camera.",
+        "complexTypes": [
+          "CameraPreviewFlashMode"
+        ],
+        "slug": "getsupportedflashmodes"
+      },
+      {
+        "name": "setAspectRatio",
+        "signature": "(options: { aspectRatio: CameraPreviewAspectRatio; x?: number; y?: number; }) => Promise<{ width: number; height: number; x: number; y: number; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired aspect ratio and optional position.\n- aspectRatio: The desired aspect ratio ('4:3', '16:9', or 'fill')\n- x: Optional x coordinate for positioning. If not provided, view will be auto-centered horizontally.\n- y: Optional y coordinate for positioning. If not provided, view will be auto-centered vertically.",
+            "type": "{ aspectRatio: CameraPreviewAspectRatio; x?: number | undefined; y?: number | undefined; }"
+          }
+        ],
+        "returns": "Promise<{ width: number; height: number; x: number; y: number; }>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired aspect ratio and optional position.\n- aspectRatio: The desired aspect ratio ('4:3', '16:9', or 'fill')\n- x: Optional x coordinate for positioning. If not provided, view will be auto-centered horizontally.\n- y: Optional y coordinate for positioning. If not provided, view will be auto-centered vertically."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the actual preview dimensions and position."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Set the aspect ratio of the camera preview.",
+        "complexTypes": [
+          "CameraPreviewAspectRatio"
+        ],
+        "slug": "setaspectratio"
+      },
+      {
+        "name": "getAspectRatio",
+        "signature": "() => Promise<{ aspectRatio: CameraPreviewAspectRatio; }>",
+        "parameters": [],
+        "returns": "Promise<{ aspectRatio: CameraPreviewAspectRatio; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current aspect ratio."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current aspect ratio of the camera preview.",
+        "complexTypes": [
+          "CameraPreviewAspectRatio"
+        ],
+        "slug": "getaspectratio"
+      },
+      {
+        "name": "setGridMode",
+        "signature": "(options: { gridMode: GridMode; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired grid mode ('none', '3x3', or '4x4').",
+            "type": "{ gridMode: GridMode; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired grid mode ('none', '3x3', or '4x4')."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the grid mode is set."
+          },
+          {
+            "name": "since",
+            "text": "8.0.0"
+          }
+        ],
+        "docs": "Sets the grid mode of the camera preview overlay.",
+        "complexTypes": [
+          "GridMode"
+        ],
+        "slug": "setgridmode"
+      },
+      {
+        "name": "getGridMode",
+        "signature": "() => Promise<{ gridMode: GridMode; }>",
+        "parameters": [],
+        "returns": "Promise<{ gridMode: GridMode; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current grid mode."
+          },
+          {
+            "name": "since",
+            "text": "8.0.0"
+          }
+        ],
+        "docs": "Gets the current grid mode of the camera preview overlay.",
+        "complexTypes": [
+          "GridMode"
+        ],
+        "slug": "getgridmode"
+      },
+      {
+        "name": "checkPermissions",
+        "signature": "(options?: Pick<PermissionRequestOptions, \"disableAudio\"> | undefined) => Promise<CameraPermissionStatus>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "Set `disableAudio` to `false` to also include microphone status (defaults to `true`).",
+            "type": "Pick<PermissionRequestOptions, 'disableAudio'> | undefined"
+          }
+        ],
+        "returns": "Promise<CameraPermissionStatus>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options Set `disableAudio` to `false` to also include microphone status (defaults to `true`)."
+          },
+          {
+            "name": "returns",
+            "text": "A promise resolving to the current authorization states."
+          },
+          {
+            "name": "since",
+            "text": "8.7.0"
+          }
+        ],
+        "docs": "Checks the current camera (and optionally microphone) permission status without prompting the system dialog.",
+        "complexTypes": [
+          "CameraPermissionStatus",
+          "Pick",
+          "PermissionRequestOptions"
+        ],
+        "slug": "checkpermissions"
+      },
+      {
+        "name": "requestPermissions",
+        "signature": "(options?: PermissionRequestOptions | undefined) => Promise<CameraPermissionStatus>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- Configuration for the permission request behaviour.",
+            "type": "PermissionRequestOptions | undefined"
+          }
+        ],
+        "returns": "Promise<CameraPermissionStatus>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - Configuration for the permission request behaviour."
+          },
+          {
+            "name": "returns",
+            "text": "A promise resolving to the final authorization states."
+          },
+          {
+            "name": "since",
+            "text": "8.7.0"
+          }
+        ],
+        "docs": "Requests camera (and optional microphone) permissions. If permissions are already granted or denied,\nthe current status is returned without prompting. When `showSettingsAlert` is true and permissions are denied,\na platform specific alert guiding the user to the app settings will be presented.",
+        "complexTypes": [
+          "CameraPermissionStatus",
+          "PermissionRequestOptions"
+        ],
+        "slug": "requestpermissions"
+      },
+      {
+        "name": "getHorizontalFov",
+        "signature": "() => Promise<{ result: number; }>",
+        "parameters": [],
+        "returns": "Promise<{ result: number; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the horizontal field of view in degrees."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Gets the horizontal field of view (FoV) for the active camera.\nNote: This can be an estimate on some devices.",
+        "complexTypes": [],
+        "slug": "gethorizontalfov"
+      },
+      {
+        "name": "getSupportedPictureSizes",
+        "signature": "() => Promise<{ supportedPictureSizes: SupportedPictureSizes[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ supportedPictureSizes: SupportedPictureSizes[]; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the list of supported sizes."
+          },
+          {
+            "name": "since",
+            "text": "7.4.0"
+          }
+        ],
+        "docs": "Gets the supported picture sizes for all cameras.",
+        "complexTypes": [
+          "SupportedPictureSizes"
+        ],
+        "slug": "getsupportedpicturesizes"
+      },
+      {
+        "name": "setFlashMode",
+        "signature": "(options: { flashMode: CameraPreviewFlashMode | string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired flash mode.",
+            "type": "{ flashMode: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired flash mode."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the flash mode is set."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Sets the flash mode for the active camera.",
+        "complexTypes": [
+          "CameraPreviewFlashMode"
+        ],
+        "slug": "setflashmode"
+      },
+      {
+        "name": "flip",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the camera is flipped."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Toggles between the front and rear cameras.",
+        "complexTypes": [],
+        "slug": "flip"
+      },
+      {
+        "name": "setOpacity",
+        "signature": "(options: CameraOpacityOptions) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The opacity options.",
+            "type": "CameraOpacityOptions"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The opacity options."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the opacity is set."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Sets the opacity of the camera preview.",
+        "complexTypes": [
+          "CameraOpacityOptions"
+        ],
+        "slug": "setopacity"
+      },
+      {
+        "name": "stopRecordVideo",
+        "signature": "() => Promise<RecordingFinishedEvent>",
+        "parameters": [],
+        "returns": "Promise<RecordingFinishedEvent>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the path to the recorded video file."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Stops an ongoing video recording.",
+        "complexTypes": [
+          "RecordingFinishedEvent"
+        ],
+        "slug": "stoprecordvideo"
+      },
+      {
+        "name": "startRecordVideo",
+        "signature": "(options: CameraPreviewOptions) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The options for video recording.",
+            "type": "CameraPreviewOptions"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The options for video recording."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when video recording starts."
+          },
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Starts recording a video.\n\nSupports `frameRate`, `videoCodec`, `videoStabilizationMode`, `maxDuration`, `maxFileSize`, `disableAudio`, `allowHapticsAndSystemSoundsDuringRecording`, and `mirrorFrontCamera` on each call.",
+        "complexTypes": [
+          "CameraPreviewOptions"
+        ],
+        "slug": "startrecordvideo"
+      },
+      {
+        "name": "setVideoQuality",
+        "signature": "(options: { quality: VideoQuality; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired video quality.",
+            "type": "{ quality: VideoQuality; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired video quality."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the quality is set."
+          },
+          {
+            "name": "since",
+            "text": "8.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the video recording quality for the active camera session.",
+        "complexTypes": [
+          "VideoQuality"
+        ],
+        "slug": "setvideoquality"
+      },
+      {
+        "name": "getVideoQuality",
+        "signature": "() => Promise<{ quality: VideoQuality; }>",
+        "parameters": [],
+        "returns": "Promise<{ quality: VideoQuality; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current quality."
+          },
+          {
+            "name": "since",
+            "text": "8.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current video recording quality.",
+        "complexTypes": [
+          "VideoQuality"
+        ],
+        "slug": "getvideoquality"
+      },
+      {
+        "name": "getSupportedVideoQualities",
+        "signature": "() => Promise<{ qualities: VideoQuality[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ qualities: VideoQuality[]; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with supported qualities."
+          },
+          {
+            "name": "since",
+            "text": "8.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the video qualities supported by the active camera.",
+        "complexTypes": [
+          "VideoQuality"
+        ],
+        "slug": "getsupportedvideoqualities"
+      },
+      {
+        "name": "setVideoCodec",
+        "signature": "(options: { codec: VideoCodec; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired codec.",
+            "type": "{ codec: VideoCodec; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired codec."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the codec is set."
+          },
+          {
+            "name": "since",
+            "text": "8.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the video codec used when recording.",
+        "complexTypes": [
+          "VideoCodec"
+        ],
+        "slug": "setvideocodec"
+      },
+      {
+        "name": "getVideoCodec",
+        "signature": "() => Promise<{ codec: VideoCodec; }>",
+        "parameters": [],
+        "returns": "Promise<{ codec: VideoCodec; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current codec."
+          },
+          {
+            "name": "since",
+            "text": "8.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current video codec used for recording.",
+        "complexTypes": [
+          "VideoCodec"
+        ],
+        "slug": "getvideocodec"
+      },
+      {
+        "name": "getSupportedVideoCodecs",
+        "signature": "() => Promise<{ codecs: VideoCodec[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ codecs: VideoCodec[]; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with supported codecs."
+          },
+          {
+            "name": "since",
+            "text": "8.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the video codecs supported by the active camera.",
+        "complexTypes": [
+          "VideoCodec"
+        ],
+        "slug": "getsupportedvideocodecs"
+      },
+      {
+        "name": "isVideoStabilizationSupported",
+        "signature": "() => Promise<{ supported: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ supported: boolean; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the support state."
+          },
+          {
+            "name": "since",
+            "text": "8.5.2"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Checks whether video stabilization is supported by the active camera.",
+        "complexTypes": [],
+        "slug": "isvideostabilizationsupported"
+      },
+      {
+        "name": "getSupportedVideoStabilizationModes",
+        "signature": "() => Promise<{ modes: VideoStabilizationMode[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ modes: VideoStabilizationMode[]; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with supported modes."
+          },
+          {
+            "name": "since",
+            "text": "8.5.2"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the video stabilization modes supported by the active camera.",
+        "complexTypes": [
+          "VideoStabilizationMode"
+        ],
+        "slug": "getsupportedvideostabilizationmodes"
+      },
+      {
+        "name": "getVideoStabilizationMode",
+        "signature": "() => Promise<{ mode: VideoStabilizationMode; }>",
+        "parameters": [],
+        "returns": "Promise<{ mode: VideoStabilizationMode; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current mode."
+          },
+          {
+            "name": "since",
+            "text": "8.5.2"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current video stabilization mode.",
+        "complexTypes": [
+          "VideoStabilizationMode"
+        ],
+        "slug": "getvideostabilizationmode"
+      },
+      {
+        "name": "setVideoStabilizationMode",
+        "signature": "(options: { mode: VideoStabilizationMode; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired stabilization mode.",
+            "type": "{ mode: VideoStabilizationMode; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired stabilization mode."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the mode is set."
+          },
+          {
+            "name": "since",
+            "text": "8.5.2"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the video stabilization mode for recording.\nCannot be changed while a recording is in progress.\nYou can also pass `videoStabilizationMode` in `startRecordVideo()` options.",
+        "complexTypes": [
+          "VideoStabilizationMode"
+        ],
+        "slug": "setvideostabilizationmode"
+      },
+      {
+        "name": "isRunning",
+        "signature": "() => Promise<{ isRunning: boolean; }>",
+        "parameters": [],
+        "returns": "Promise<{ isRunning: boolean; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the running state."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Checks if the camera preview is currently running.",
+        "complexTypes": [],
+        "slug": "isrunning"
+      },
+      {
+        "name": "getAvailableDevices",
+        "signature": "() => Promise<{ devices: CameraDevice[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ devices: CameraDevice[]; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the list of available camera devices."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets all available camera devices.",
+        "complexTypes": [
+          "CameraDevice"
+        ],
+        "slug": "getavailabledevices"
+      },
+      {
+        "name": "getZoom",
+        "signature": "() => Promise<{ min: number; max: number; current: number; lens: LensInfo; }>",
+        "parameters": [],
+        "returns": "Promise<{ min: number; max: number; current: number; lens: LensInfo; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the zoom state."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current zoom state, including min/max and current lens info.",
+        "complexTypes": [
+          "LensInfo"
+        ],
+        "slug": "getzoom"
+      },
+      {
+        "name": "getZoomButtonValues",
+        "signature": "() => Promise<{ values: number[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ values: number[]; }>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns zoom button values for quick switching.\n- iOS/Android: includes 0.5 if ultra-wide available; 1 and 2 if wide available; 3 if telephoto available\n- Web: unsupported",
+        "complexTypes": [],
+        "slug": "getzoombuttonvalues"
+      },
+      {
+        "name": "setZoom",
+        "signature": "(options: { level: number; ramp?: boolean; autoFocus?: boolean; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The desired zoom level. `ramp` is currently unused. `autoFocus` defaults to true.",
+            "type": "{ level: number; ramp?: boolean | undefined; autoFocus?: boolean | undefined; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The desired zoom level. `ramp` is currently unused. `autoFocus` defaults to true."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the zoom level is set."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the zoom level of the camera.",
+        "complexTypes": [],
+        "slug": "setzoom"
+      },
+      {
+        "name": "getFlashMode",
+        "signature": "() => Promise<{ flashMode: FlashMode; }>",
+        "parameters": [],
+        "returns": "Promise<{ flashMode: CameraPreviewFlashMode; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current flash mode."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current flash mode.",
+        "complexTypes": [
+          "FlashMode"
+        ],
+        "slug": "getflashmode"
+      },
+      {
+        "name": "removeAllListeners",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Removes all registered listeners.",
+        "complexTypes": [],
+        "slug": "removealllisteners"
+      },
+      {
+        "name": "setDeviceId",
+        "signature": "(options: { deviceId: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The ID of the device to switch to.",
+            "type": "{ deviceId: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The ID of the device to switch to."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the camera is switched."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Switches the active camera to the one with the specified `deviceId`.",
+        "complexTypes": [],
+        "slug": "setdeviceid"
+      },
+      {
+        "name": "getDeviceId",
+        "signature": "() => Promise<{ deviceId: string; }>",
+        "parameters": [],
+        "returns": "Promise<{ deviceId: string; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the current device ID."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the ID of the camera device that is currently bound.\nOn Android, if a physical-lens request falls back to a logical camera, this returns the bound logical camera ID.",
+        "complexTypes": [],
+        "slug": "getdeviceid"
+      },
+      {
+        "name": "getPreviewSize",
+        "signature": "() => Promise<{ x: number; y: number; width: number; height: number; }>",
+        "parameters": [],
+        "returns": "Promise<{ x: number; y: number; width: number; height: number; }>",
+        "tags": [
+          {
+            "name": "returns"
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current preview size and position.",
+        "complexTypes": [],
+        "slug": "getpreviewsize"
+      },
+      {
+        "name": "setPreviewSize",
+        "signature": "(options: { x?: number; y?: number; width: number; height: number; }) => Promise<{ width: number; height: number; x: number; y: number; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "The new position and dimensions.",
+            "type": "{ x?: number | undefined; y?: number | undefined; width: number; height: number; }"
+          }
+        ],
+        "returns": "Promise<{ width: number; height: number; x: number; y: number; }>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options The new position and dimensions."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves with the actual preview dimensions and position."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the preview size and position.",
+        "complexTypes": [],
+        "slug": "setpreviewsize"
+      },
+      {
+        "name": "setFocus",
+        "signature": "(options: { x: number; y: number; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "- The focus options.",
+            "type": "{ x: number; y: number; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "options - The focus options."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves when the focus is set."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the camera focus to a specific point in the preview.\n\nNote: The plugin does not attach any native tap-to-focus gesture handlers. Handle taps in\nyour HTML/JS (e.g., on the overlaying UI), then pass normalized coordinates here.",
+        "complexTypes": [],
+        "slug": "setfocus"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'screenResize', listenerFunc: (data: { width: number; height: number; x: number; y: number; }) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "- The event name to listen for.",
+            "type": "'screenResize'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "- The function to call when the event is triggered.",
+            "type": "(data: { width: number; height: number; x: number; y: number; }) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "eventName - The event name to listen for."
+          },
+          {
+            "name": "param",
+            "text": "listenerFunc - The function to call when the event is triggered."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves with a handle to the listener."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Adds a listener for screen resize events.",
+        "complexTypes": [
+          "PluginListenerHandle"
+        ],
+        "slug": "addlistenerscreenresize-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'orientationChange', listenerFunc: (data: { orientation: DeviceOrientation; }) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "- The event name to listen for.",
+            "type": "'orientationChange'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "- The function to call when the event is triggered.",
+            "type": "(data: { orientation: DeviceOrientation; }) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "eventName - The event name to listen for."
+          },
+          {
+            "name": "param",
+            "text": "listenerFunc - The function to call when the event is triggered."
+          },
+          {
+            "name": "returns",
+            "text": "A promise that resolves with a handle to the listener."
+          },
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Adds a listener for orientation change events.",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "DeviceOrientation"
+        ],
+        "slug": "addlistenerorientationchange-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'barcodeScanned', listenerFunc: (data: BarcodeScannedEvent) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'barcodeScanned'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "",
+            "type": "(data: BarcodeScannedEvent) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "8.8.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios, web"
+          }
+        ],
+        "docs": "Adds a listener for barcode scan results.",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "BarcodeScannedEvent"
+        ],
+        "slug": "addlistenerbarcodescanned-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'barcodeScanError', listenerFunc: (data: BarcodeScanErrorEvent) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'barcodeScanError'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "",
+            "type": "(data: BarcodeScanErrorEvent) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "8.8.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, web"
+          }
+        ],
+        "docs": "Adds a listener for non-fatal barcode scanner errors.",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "BarcodeScanErrorEvent"
+        ],
+        "slug": "addlistenerbarcodescanerror-"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'recordingFinished', listenerFunc: (data: RecordingFinishedEvent) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'recordingFinished'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "",
+            "type": "(data: RecordingFinishedEvent) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "8.4.7"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Adds a listener fired when a video recording finishes natively, including automatic stops.",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "RecordingFinishedEvent"
+        ],
+        "slug": "addlistenerrecordingfinished-"
+      },
+      {
+        "name": "deleteFile",
+        "signature": "(options: { path: string; }) => Promise<{ success: boolean; }>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ path: string; }"
+          }
+        ],
+        "returns": "Promise<{ success: boolean; }>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Deletes a file at the given absolute path on the device.\nUse this to quickly clean up temporary images created with `storeToFile`.\nOn web, this is not supported and will throw.",
+        "complexTypes": [],
+        "slug": "deletefile"
+      },
+      {
+        "name": "getSafeAreaInsets",
+        "signature": "() => Promise<SafeAreaInsets>",
+        "parameters": [],
+        "returns": "Promise<SafeAreaInsets>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the safe area insets for devices.\nReturns the orientation-aware notch/camera cutout inset and the current orientation.\nIn portrait mode: returns top inset (notch at top).\nIn landscape mode: returns left inset (notch moved to side).\nThis specifically targets the cutout area (notch, punch hole, etc.) that all modern phones have.\n\nAndroid: Values returned in dp (logical pixels).\niOS: Values returned in physical pixels, excluding status bar (only pure notch/cutout size).",
+        "complexTypes": [
+          "SafeAreaInsets"
+        ],
+        "slug": "getsafeareainsets"
+      },
+      {
+        "name": "getOrientation",
+        "signature": "() => Promise<{ orientation: DeviceOrientation; }>",
+        "parameters": [],
+        "returns": "Promise<{ orientation: DeviceOrientation; }>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "7.5.0"
+          },
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Gets the current device orientation in a cross-platform format.",
+        "complexTypes": [
+          "DeviceOrientation"
+        ],
+        "slug": "getorientation"
+      },
+      {
+        "name": "getExposureModes",
+        "signature": "() => Promise<{ modes: ExposureMode[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ modes: ExposureMode[]; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the exposure modes supported by the active camera.\nModes can include: 'locked', 'auto', 'continuous', 'custom'.",
+        "complexTypes": [
+          "ExposureMode"
+        ],
+        "slug": "getexposuremodes"
+      },
+      {
+        "name": "getExposureMode",
+        "signature": "() => Promise<{ mode: ExposureMode; }>",
+        "parameters": [],
+        "returns": "Promise<{ mode: ExposureMode; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the current exposure mode.",
+        "complexTypes": [
+          "ExposureMode"
+        ],
+        "slug": "getexposuremode"
+      },
+      {
+        "name": "setExposureMode",
+        "signature": "(options: { mode: ExposureMode; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ mode: ExposureMode; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the exposure mode.",
+        "complexTypes": [
+          "ExposureMode"
+        ],
+        "slug": "setexposuremode"
+      },
+      {
+        "name": "getExposureCompensationRange",
+        "signature": "() => Promise<{ min: number; max: number; step: number; }>",
+        "parameters": [],
+        "returns": "Promise<{ min: number; max: number; step: number; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "ios, android"
+          }
+        ],
+        "docs": "Returns the exposure compensation (EV bias) supported range.",
+        "complexTypes": [],
+        "slug": "getexposurecompensationrange"
+      },
+      {
+        "name": "getExposureCompensation",
+        "signature": "() => Promise<{ value: number; }>",
+        "parameters": [],
+        "returns": "Promise<{ value: number; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "ios, android"
+          }
+        ],
+        "docs": "Returns the current exposure compensation (EV bias).",
+        "complexTypes": [],
+        "slug": "getexposurecompensation"
+      },
+      {
+        "name": "setExposureCompensation",
+        "signature": "(options: { value: number; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ value: number; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "ios, android"
+          }
+        ],
+        "docs": "Sets the exposure compensation (EV bias). Value will be clamped to range.",
+        "complexTypes": [],
+        "slug": "setexposurecompensation"
+      },
+      {
+        "name": "getWhiteBalanceModes",
+        "signature": "() => Promise<{ modes: WhiteBalanceMode[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ modes: WhiteBalanceMode[]; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the white-balance modes supported by the active camera.\nModes can include: 'AUTO', 'LOCK', 'CONTINUOUS'. `CUSTOM` is not listed\nuntil manual gains support is implemented.",
+        "complexTypes": [
+          "WhiteBalanceMode"
+        ],
+        "slug": "getwhitebalancemodes"
+      },
+      {
+        "name": "getWhiteBalanceMode",
+        "signature": "() => Promise<{ mode: WhiteBalanceMode; }>",
+        "parameters": [],
+        "returns": "Promise<{ mode: WhiteBalanceMode; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Returns the current white-balance mode.",
+        "complexTypes": [
+          "WhiteBalanceMode"
+        ],
+        "slug": "getwhitebalancemode"
+      },
+      {
+        "name": "setWhiteBalanceMode",
+        "signature": "(options: { mode: WhiteBalanceMode; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ mode: WhiteBalanceMode; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          }
+        ],
+        "docs": "Sets the white-balance mode. `CONTINUOUS` keeps auto white balance running\n(recommended; avoids a warm/yellow cast), `LOCK` freezes the current gains,\n`AUTO` performs a one-time adjustment. `CUSTOM` is reserved and rejected\nuntil manual gains support is implemented.",
+        "complexTypes": [
+          "WhiteBalanceMode"
+        ],
+        "slug": "setwhitebalancemode"
+      },
+      {
+        "name": "getSupportedVideoFrameRates",
+        "signature": "() => Promise<{ frameRates: number[]; }>",
+        "parameters": [],
+        "returns": "Promise<{ frameRates: number[]; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          },
+          {
+            "name": "since",
+            "text": "8.6.0"
+          }
+        ],
+        "docs": "Lists the video frame rates supported by the active camera for the current format.\nSupported values depend on the selected camera, lens, and video quality.",
+        "complexTypes": [],
+        "slug": "getsupportedvideoframerates"
+      },
+      {
+        "name": "getVideoFrameRate",
+        "signature": "() => Promise<{ frameRate: number; }>",
+        "parameters": [],
+        "returns": "Promise<{ frameRate: number; }>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          },
+          {
+            "name": "since",
+            "text": "8.6.0"
+          }
+        ],
+        "docs": "Returns the configured video frame rate for the active camera.\nOn Android the actual recording frame rate can still vary in low light or under thermal pressure.",
+        "complexTypes": [],
+        "slug": "getvideoframerate"
+      },
+      {
+        "name": "setVideoFrameRate",
+        "signature": "(options: { frameRate: number; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "options",
+            "docs": "",
+            "type": "{ frameRate: number; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "platform",
+            "text": "android, ios"
+          },
+          {
+            "name": "since",
+            "text": "8.6.0"
+          }
+        ],
+        "docs": "Sets the target video frame rate for the active camera session.\nPrefer passing `frameRate` to `startRecordVideo()` when starting a recording.\nRejects unsupported values with a clear error.",
+        "complexTypes": [],
+        "slug": "setvideoframerate"
+      },
+      {
+        "name": "getPluginVersion",
+        "signature": "() => Promise<{ version: string; }>",
+        "parameters": [],
+        "returns": "Promise<{ version: string; }>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "an Promise with version for this device"
+          },
+          {
+            "name": "throws",
+            "text": "An error if the something went wrong"
+          }
+        ],
+        "docs": "Get the native Capacitor plugin version",
+        "complexTypes": [],
+        "slug": "getpluginversion"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [
+    {
+      "name": "CameraPreviewOptions",
+      "slug": "camerapreviewoptions",
+      "docs": "Defines the configuration options for starting the camera preview.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "parent",
+          "tags": [
+            {
+              "text": "web",
+              "name": "platform"
+            }
+          ],
+          "docs": "The parent element to attach the video preview to.",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "className",
+          "tags": [
+            {
+              "text": "web",
+              "name": "platform"
+            }
+          ],
+          "docs": "A CSS class name to add to the preview element.",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "width",
+          "tags": [
+            {
+              "text": "android, ios, web",
+              "name": "platform"
+            }
+          ],
+          "docs": "The width of the preview in pixels. Defaults to the screen width.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "height",
+          "tags": [
+            {
+              "text": "android, ios, web",
+              "name": "platform"
+            }
+          ],
+          "docs": "The height of the preview in pixels. Defaults to the screen height.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "x",
+          "tags": [
+            {
+              "text": "android, ios",
+              "name": "platform"
+            }
+          ],
+          "docs": "The horizontal origin of the preview, in pixels.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "y",
+          "tags": [
+            {
+              "text": "android, ios",
+              "name": "platform"
+            }
+          ],
+          "docs": "The vertical origin of the preview, in pixels.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "aspectRatio",
+          "tags": [
+            {
+              "text": "2.0.0",
+              "name": "since"
+            }
+          ],
+          "docs": "The aspect ratio of the camera preview, '4:3' or '16:9' or 'fill'.\nCannot be set if width or height is provided, otherwise the call will be rejected.\nUse setPreviewSize to adjust size after starting.",
+          "complexTypes": [
+            "CameraPreviewAspectRatio"
+          ],
+          "type": "CameraPreviewAspectRatio"
+        },
+        {
+          "name": "aspectMode",
+          "tags": [
+            {
+              "text": "\"contain\"",
+              "name": "default"
+            },
+            {
+              "text": "android, ios, web",
+              "name": "platform"
+            }
+          ],
+          "docs": "Controls how the camera preview fills the available space.\n- 'contain': Fits the entire preview within the space, may show letterboxing (default).\n- 'cover': Fills the entire space, may crop edges of the preview.",
+          "complexTypes": [],
+          "type": "'cover' | 'contain' | undefined"
+        },
+        {
+          "name": "gridMode",
+          "tags": [
+            {
+              "text": "\"none\"",
+              "name": "default"
+            },
+            {
+              "text": "2.1.0",
+              "name": "since"
+            }
+          ],
+          "docs": "The grid overlay to display on the camera preview.",
+          "complexTypes": [
+            "GridMode"
+          ],
+          "type": "GridMode"
+        },
+        {
+          "name": "includeSafeAreaInsets",
+          "tags": [
+            {
+              "text": "android, ios",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            }
+          ],
+          "docs": "Adjusts the y-position to account for safe areas (e.g., notches).",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "toBack",
+          "tags": [
+            {
+              "text": "android",
+              "name": "platform"
+            },
+            {
+              "text": "true",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, places the preview behind the webview.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "paddingBottom",
+          "tags": [
+            {
+              "text": "android, ios",
+              "name": "platform"
+            }
+          ],
+          "docs": "Bottom padding for the preview, in pixels.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "rotateWhenOrientationChanged",
+          "tags": [
+            {
+              "text": "ios",
+              "name": "platform"
+            },
+            {
+              "text": "true",
+              "name": "default"
+            }
+          ],
+          "docs": "Whether to rotate the preview when the device orientation changes.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "position",
+          "tags": [
+            {
+              "text": "\"rear\"",
+              "name": "default"
+            }
+          ],
+          "docs": "The camera to use.",
+          "complexTypes": [
+            "CameraPosition"
+          ],
+          "type": "string | undefined"
+        },
+        {
+          "name": "storeToFile",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, saves the captured image to a file and returns the file path.\nIf false, returns a base64 encoded string.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "disableExifHeaderStripping",
+          "tags": [
+            {
+              "text": "android",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, prevents the plugin from rotating the image based on EXIF data.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "disableAudio",
+          "tags": [
+            {
+              "text": "true",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, disables the audio stream, preventing audio permission requests.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "lockAndroidOrientation",
+          "tags": [
+            {
+              "text": "android",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, locks the device orientation while the camera is active.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "enableOpacity",
+          "tags": [
+            {
+              "text": "android, web",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, allows the camera preview's opacity to be changed.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "disableFocusIndicator",
+          "tags": [
+            {
+              "text": "android, ios",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            }
+          ],
+          "docs": "If true, disables the visual focus indicator when tapping to focus.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "deviceId",
+          "tags": [
+            {
+              "text": "ios",
+              "name": "platform"
+            }
+          ],
+          "docs": "The `deviceId` of the camera to use. If provided, `position` is ignored.",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "enablePhysicalDeviceSelection",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "android",
+              "name": "platform"
+            }
+          ],
+          "docs": "On Android, attempts to bind a physical camera directly when `deviceId` refers to a physical lens.\nDisabled by default because OEM support is inconsistent; when false, Android keeps the current logical-camera fallback behavior.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "initialZoomLevel",
+          "tags": [
+            {
+              "text": "1.0",
+              "name": "default"
+            },
+            {
+              "text": "android, ios",
+              "name": "platform"
+            },
+            {
+              "text": "2.2.0",
+              "name": "since"
+            }
+          ],
+          "docs": "The initial zoom level when starting the camera preview.\nIf the requested zoom level is not available, the native plugin will reject.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "positioning",
+          "tags": [
+            {
+              "text": "\"center\"",
+              "name": "default"
+            },
+            {
+              "text": "android, ios, web",
+              "name": "platform"
+            },
+            {
+              "text": "2.3.0",
+              "name": "since"
+            }
+          ],
+          "docs": "The vertical positioning of the camera preview.",
+          "complexTypes": [
+            "CameraPositioning"
+          ],
+          "type": "CameraPositioning"
+        },
+        {
+          "name": "enableVideoMode",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "android, ios",
+              "name": "platform"
+            },
+            {
+              "text": "7.11.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true, enables video capture capabilities when the camera starts.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "force",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "android, ios, web",
+              "name": "platform"
+            }
+          ],
+          "docs": "If true, forces the camera to start/restart even if it's already running or busy.\nThis will kill the current camera session and start a new one, ignoring all state checks.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "videoQuality",
+          "tags": [
+            {
+              "text": "On Android requires 'enableVideoMode' to be true",
+              "name": "note"
+            },
+            {
+              "text": "Will affect the entire preview stream for iOS",
+              "name": "note"
+            },
+            {
+              "text": "ios, android",
+              "name": "platform"
+            },
+            {
+              "text": "\"high\"",
+              "name": "default"
+            }
+          ],
+          "docs": "Sets the quality of video for recording.\nOptions: 'low', 'medium', 'high', '2160p', '1080p', '720p', '480p', '4:3'",
+          "complexTypes": [
+            "VideoQuality"
+          ],
+          "type": "VideoQuality"
+        },
+        {
+          "name": "maxDuration",
+          "tags": [
+            {
+              "text": "ios, android",
+              "name": "platform"
+            }
+          ],
+          "docs": "Maximum recording duration in seconds. Recording stops automatically when reached.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "maxFileSize",
+          "tags": [
+            {
+              "text": "ios, android",
+              "name": "platform"
+            }
+          ],
+          "docs": "Maximum recording file size in bytes. Recording stops automatically when reached.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "videoCodec",
+          "tags": [
+            {
+              "text": "ios, android",
+              "name": "platform"
+            },
+            {
+              "text": "\"avc1\"",
+              "name": "default"
+            }
+          ],
+          "docs": "Preferred video codec for recording.",
+          "complexTypes": [
+            "VideoCodec"
+          ],
+          "type": "VideoCodec"
+        },
+        {
+          "name": "frameRate",
+          "tags": [
+            {
+              "text": "ios, android",
+              "name": "platform"
+            },
+            {
+              "text": "8.6.0",
+              "name": "since"
+            }
+          ],
+          "docs": "Target video frame rate in frames per second.\nApplied when recording starts. Use `getSupportedVideoFrameRates()` to list supported values.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "videoStabilizationMode",
+          "tags": [
+            {
+              "text": "ios, android",
+              "name": "platform"
+            },
+            {
+              "text": "\"off\"",
+              "name": "default"
+            }
+          ],
+          "docs": "Preferred video stabilization mode for recording.",
+          "complexTypes": [
+            "VideoStabilizationMode"
+          ],
+          "type": "VideoStabilizationMode"
+        },
+        {
+          "name": "allowHapticsAndSystemSoundsDuringRecording",
+          "tags": [
+            {
+              "text": "ios",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "8.8.0",
+              "name": "since"
+            }
+          ],
+          "docs": "When `true`, allows haptic feedback and system sounds while recording video with audio.\niOS suppresses haptics during audio input recording unless this is enabled.\nRequires `disableAudio: false`.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "mirrorFrontCamera",
+          "tags": [
+            {
+              "text": "ios, android",
+              "name": "platform"
+            },
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "8.10.0",
+              "name": "since"
+            }
+          ],
+          "docs": "When `true` and the front camera is active, mirrors the recorded video file\nso it matches the selfie-style preview (text and gestures are not reversed).\nDoes not affect the live preview. Defaults to `false` to preserve existing behavior.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "barcodeScanner",
+          "tags": [
+            {
+              "text": "android, ios, web",
+              "name": "platform"
+            },
+            {
+              "text": "8.8.0",
+              "name": "since"
+            }
+          ],
+          "docs": "Starts barcode scanning together with the camera preview.\nSet to `true` or pass options to scan all supported formats.\nOmit this option to keep barcode scanning disabled at startup.",
+          "complexTypes": [
+            "BarcodeScannerOptions"
+          ],
+          "type": "boolean | BarcodeScannerOptions | undefined"
+        }
+      ]
+    },
+    {
+      "name": "BarcodeScannerOptions",
+      "slug": "barcodescanneroptions",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "formats",
+          "tags": [],
+          "docs": "Restricts detection to the given formats. Leaving this empty scans all supported formats.\nRestricting formats can improve scanning speed.",
+          "complexTypes": [
+            "BarcodeScannerFormat"
+          ],
+          "type": "BarcodeScannerFormat[] | undefined"
+        },
+        {
+          "name": "detectionInterval",
+          "tags": [
+            {
+              "text": "500",
+              "name": "default"
+            }
+          ],
+          "docs": "Minimum delay between native scan attempts in milliseconds.\nLower values scan more often but use more CPU.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        }
+      ]
+    },
+    {
+      "name": "ExifData",
+      "slug": "exifdata",
+      "docs": "Represents EXIF data extracted from an image.",
+      "tags": [],
+      "methods": [],
+      "properties": []
+    },
+    {
+      "name": "CameraPreviewPictureOptions",
+      "slug": "camerapreviewpictureoptions",
+      "docs": "Defines the options for capturing a picture.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "height",
+          "tags": [],
+          "docs": "The maximum height of the picture in pixels. The image will be resized to fit within this height while maintaining aspect ratio.\nIf not specified the captured image will match the preview's visible area.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "width",
+          "tags": [],
+          "docs": "The maximum width of the picture in pixels. The image will be resized to fit within this width while maintaining aspect ratio.\nIf not specified the captured image will match the preview's visible area.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "quality",
+          "tags": [
+            {
+              "text": "85",
+              "name": "default"
+            }
+          ],
+          "docs": "The quality of the captured image, from 0 to 100.\nDoes not apply to `png` format.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "format",
+          "tags": [
+            {
+              "text": "\"jpeg\"",
+              "name": "default"
+            }
+          ],
+          "docs": "The format of the captured image.",
+          "complexTypes": [
+            "PictureFormat"
+          ],
+          "type": "PictureFormat"
+        },
+        {
+          "name": "saveToGallery",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "7.5.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true, the captured image will be saved to the user's gallery.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "withExifLocation",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "7.6.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true, the plugin will attempt to add GPS location data to the image's EXIF metadata.\nThis may prompt the user for location permissions.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "embedTimestamp",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "7.17.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true, the plugin will embed a timestamp in the top-right corner of the image.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "embedLocation",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "7.18.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true, the plugin will embed the current location in the top-right corner of the image.\nRequires `withExifLocation` to be enabled.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "photoQualityPrioritization",
+          "tags": [
+            {
+              "text": "7.21.0",
+              "name": "since"
+            },
+            {
+              "text": "ios",
+              "name": "platform"
+            },
+            {
+              "text": "\"speed\"",
+              "name": "default"
+            }
+          ],
+          "docs": "Sets the priority for photo quality vs. capture speed.\n- \"speed\": Prioritizes faster capture times, may reduce image quality.\n- \"balanced\": Aims for a balance between quality and speed.\n- \"quality\": Prioritizes image quality, may reduce capture speed.\nSee https://developer.apple.com/documentation/avfoundation/avcapturephotosettings/photoqualityprioritization for details.",
+          "complexTypes": [],
+          "type": "'speed' | 'balanced' | 'quality' | undefined"
+        },
+        {
+          "name": "mirrorFrontCamera",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "8.10.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true and the front camera is active, horizontally mirror the captured photo\nso it matches a selfie-style preview. Rear camera captures are never mirrored.\nDefaults to false to preserve the previous non-mirrored behavior.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        }
+      ]
+    },
+    {
+      "name": "CameraSampleOptions",
+      "slug": "camerasampleoptions",
+      "docs": "Defines the options for capturing a sample frame from the camera preview.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "quality",
+          "tags": [
+            {
+              "text": "85",
+              "name": "default"
+            }
+          ],
+          "docs": "The quality of the captured sample, from 0 to 100.",
+          "complexTypes": [],
+          "type": "number | undefined"
+        },
+        {
+          "name": "mirrorFrontCamera",
+          "tags": [
+            {
+              "text": "false",
+              "name": "default"
+            },
+            {
+              "text": "8.10.0",
+              "name": "since"
+            }
+          ],
+          "docs": "If true and the front camera is active, horizontally mirror the captured sample\nso it matches a selfie-style preview. Rear camera samples are never mirrored.\nDefaults to false to preserve the previous non-mirrored behavior.",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        }
+      ]
+    },
+    {
+      "name": "CameraPermissionStatus",
+      "slug": "camerapermissionstatus",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "camera",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "PermissionState"
+          ],
+          "type": "PermissionState"
+        },
+        {
+          "name": "microphone",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [
+            "PermissionState"
+          ],
+          "type": "PermissionState"
+        }
+      ]
+    },
+    {
+      "name": "PermissionRequestOptions",
+      "slug": "permissionrequestoptions",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "disableAudio",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "showSettingsAlert",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "boolean | undefined"
+        },
+        {
+          "name": "title",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "message",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "openSettingsButtonTitle",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "cancelButtonTitle",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "SupportedPictureSizes",
+      "slug": "supportedpicturesizes",
+      "docs": "Represents the supported picture sizes for a camera facing a certain direction.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "facing",
+          "tags": [],
+          "docs": "The camera direction (\"front\" or \"rear\").",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "supportedPictureSizes",
+          "tags": [],
+          "docs": "A list of supported picture sizes for this camera.",
+          "complexTypes": [
+            "PictureSize"
+          ],
+          "type": "PictureSize[]"
+        }
+      ]
+    },
+    {
+      "name": "PictureSize",
+      "slug": "picturesize",
+      "docs": "Defines a standard picture size with width and height.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "width",
+          "tags": [],
+          "docs": "The width of the picture in pixels.",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "height",
+          "tags": [],
+          "docs": "The height of the picture in pixels.",
+          "complexTypes": [],
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "CameraOpacityOptions",
+      "slug": "cameraopacityoptions",
+      "docs": "Defines the options for setting the camera preview's opacity.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "opacity",
+          "tags": [
+            {
+              "text": "1.0",
+              "name": "default"
+            }
+          ],
+          "docs": "The opacity percentage, from 0.0 (fully transparent) to 1.0 (fully opaque).",
+          "complexTypes": [],
+          "type": "number | undefined"
+        }
+      ]
+    },
+    {
+      "name": "RecordingFinishedEvent",
+      "slug": "recordingfinishedevent",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "videoFilePath",
+          "tags": [],
+          "docs": "The path to the recorded video file.",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "tags": [],
+          "docs": "Why the recording stopped.",
+          "complexTypes": [
+            "RecordingFinishedReason"
+          ],
+          "type": "RecordingFinishedReason"
+        }
+      ]
+    },
+    {
+      "name": "CameraDevice",
+      "slug": "cameradevice",
+      "docs": "Represents a physical camera on the device (e.g., the front-facing camera).",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "deviceId",
+          "tags": [],
+          "docs": "A unique identifier for the camera device.",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "label",
+          "tags": [],
+          "docs": "A human-readable name for the camera device.",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "position",
+          "tags": [],
+          "docs": "The physical position of the camera on the device.",
+          "complexTypes": [
+            "CameraPosition"
+          ],
+          "type": "CameraPosition"
+        },
+        {
+          "name": "lenses",
+          "tags": [],
+          "docs": "A list of all available lenses for this camera device.",
+          "complexTypes": [
+            "CameraLens"
+          ],
+          "type": "CameraLens[]"
+        },
+        {
+          "name": "minZoom",
+          "tags": [],
+          "docs": "The overall minimum zoom factor available across all lenses on this device.",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "maxZoom",
+          "tags": [],
+          "docs": "The overall maximum zoom factor available across all lenses on this device.",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "isLogical",
+          "tags": [],
+          "docs": "Identifies whether the device is a logical camera (composed of multiple physical lenses).",
+          "complexTypes": [],
+          "type": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "CameraLens",
+      "slug": "cameralens",
+      "docs": "Represents a single camera lens on a device. A {@link CameraDevice} can have multiple lenses.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "label",
+          "tags": [],
+          "docs": "A human-readable name for the lens, e.g., \"Ultra-Wide\".",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "deviceType",
+          "tags": [],
+          "docs": "The type of the camera lens.",
+          "complexTypes": [
+            "DeviceType"
+          ],
+          "type": "DeviceType"
+        },
+        {
+          "name": "focalLength",
+          "tags": [],
+          "docs": "The focal length of the lens in millimeters.",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "baseZoomRatio",
+          "tags": [],
+          "docs": "The base zoom factor for this lens (e.g., 0.5 for ultra-wide, 1.0 for wide).",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "minZoom",
+          "tags": [],
+          "docs": "The minimum zoom factor supported by this specific lens.",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "maxZoom",
+          "tags": [],
+          "docs": "The maximum zoom factor supported by this specific lens.",
+          "complexTypes": [],
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "LensInfo",
+      "slug": "lensinfo",
+      "docs": "Represents the detailed information of the currently active lens.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "focalLength",
+          "tags": [],
+          "docs": "The focal length of the active lens in millimeters.",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "deviceType",
+          "tags": [],
+          "docs": "The device type of the active lens.",
+          "complexTypes": [
+            "DeviceType"
+          ],
+          "type": "DeviceType"
+        },
+        {
+          "name": "baseZoomRatio",
+          "tags": [],
+          "docs": "The base zoom ratio of the active lens (e.g., 0.5x, 1.0x).",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "digitalZoom",
+          "tags": [],
+          "docs": "The current digital zoom factor applied on top of the base zoom.",
+          "complexTypes": [],
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "PluginListenerHandle",
+      "slug": "pluginlistenerhandle",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "remove",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "() => Promise<void>"
+        }
+      ]
+    },
+    {
+      "name": "BarcodeScannedEvent",
+      "slug": "barcodescannedevent",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "barcodes",
+          "tags": [],
+          "docs": "Barcodes decoded from the current frame.",
+          "complexTypes": [
+            "BarcodeScanResult"
+          ],
+          "type": "BarcodeScanResult[]"
+        }
+      ]
+    },
+    {
+      "name": "BarcodeScanResult",
+      "slug": "barcodescanresult",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "value",
+          "tags": [],
+          "docs": "Decoded barcode value.",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "format",
+          "tags": [],
+          "docs": "Barcode format.",
+          "complexTypes": [
+            "BarcodeFormat"
+          ],
+          "type": "BarcodeFormat"
+        },
+        {
+          "name": "displayValue",
+          "tags": [],
+          "docs": "Human-readable value when the platform exposes one.",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "rawBytes",
+          "tags": [],
+          "docs": "Base64-encoded raw bytes when the platform exposes them.",
+          "complexTypes": [],
+          "type": "string | undefined"
+        }
+      ]
+    },
+    {
+      "name": "BarcodeScanErrorEvent",
+      "slug": "barcodescanerrorevent",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "message",
+          "tags": [],
+          "docs": "Native scanner error message.",
+          "complexTypes": [],
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "SafeAreaInsets",
+      "slug": "safeareainsets",
+      "docs": "Represents safe area insets for devices.\nAndroid: Values are expressed in logical pixels (dp) to match JS layout units.\niOS: Values are expressed in physical pixels and exclude status bar.",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "orientation",
+          "tags": [],
+          "docs": "Current device orientation (1 = portrait, 2 = landscape, 0 = unknown).",
+          "complexTypes": [],
+          "type": "number"
+        },
+        {
+          "name": "top",
+          "tags": [],
+          "docs": "Orientation-aware notch/camera cutout inset (excluding status bar).\nIn portrait mode: returns top inset (notch at top).\nIn landscape mode: returns left inset (notch at side).\nAndroid: Value in dp, iOS: Value in pixels (status bar excluded).",
+          "complexTypes": [],
+          "type": "number"
+        }
+      ]
+    }
+  ],
+  "enums": [
+    {
+      "name": "DeviceType",
+      "slug": "devicetype",
+      "members": [
+        {
+          "name": "ULTRA_WIDE",
+          "value": "'ultraWide'",
+          "tags": [],
+          "docs": ""
+        },
+        {
+          "name": "WIDE_ANGLE",
+          "value": "'wideAngle'",
+          "tags": [],
+          "docs": ""
+        },
+        {
+          "name": "TELEPHOTO",
+          "value": "'telephoto'",
+          "tags": [],
+          "docs": ""
+        },
+        {
+          "name": "TRUE_DEPTH",
+          "value": "'trueDepth'",
+          "tags": [],
+          "docs": ""
+        },
+        {
+          "name": "DUAL",
+          "value": "'dual'",
+          "tags": [],
+          "docs": ""
+        },
+        {
+          "name": "DUAL_WIDE",
+          "value": "'dualWide'",
+          "tags": [],
+          "docs": ""
+        },
+        {
+          "name": "TRIPLE",
+          "value": "'triple'",
+          "tags": [],
+          "docs": ""
+        }
+      ]
+    }
+  ],
+  "typeAliases": [
+    {
+      "name": "CameraPreviewAspectRatio",
+      "slug": "camerapreviewaspectratio",
+      "docs": "",
+      "types": [
+        {
+          "text": "'4:3'",
+          "complexTypes": []
+        },
+        {
+          "text": "'16:9'",
+          "complexTypes": []
+        },
+        {
+          "text": "'fill'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "GridMode",
+      "slug": "gridmode",
+      "docs": "",
+      "types": [
+        {
+          "text": "'none'",
+          "complexTypes": []
+        },
+        {
+          "text": "'3x3'",
+          "complexTypes": []
+        },
+        {
+          "text": "'4x4'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "CameraPosition",
+      "slug": "cameraposition",
+      "docs": "",
+      "types": [
+        {
+          "text": "'rear'",
+          "complexTypes": []
+        },
+        {
+          "text": "'front'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "CameraPositioning",
+      "slug": "camerapositioning",
+      "docs": "",
+      "types": [
+        {
+          "text": "'center'",
+          "complexTypes": []
+        },
+        {
+          "text": "'top'",
+          "complexTypes": []
+        },
+        {
+          "text": "'bottom'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "VideoQuality",
+      "slug": "videoquality",
+      "docs": "",
+      "types": [
+        {
+          "text": "'low'",
+          "complexTypes": []
+        },
+        {
+          "text": "'medium'",
+          "complexTypes": []
+        },
+        {
+          "text": "'high'",
+          "complexTypes": []
+        },
+        {
+          "text": "'2160p'",
+          "complexTypes": []
+        },
+        {
+          "text": "'1080p'",
+          "complexTypes": []
+        },
+        {
+          "text": "'720p'",
+          "complexTypes": []
+        },
+        {
+          "text": "'480p'",
+          "complexTypes": []
+        },
+        {
+          "text": "'4:3'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "VideoCodec",
+      "slug": "videocodec",
+      "docs": "Video codec identifiers used when recording.\n- `avc1`: H.264\n- `hvc1`: HEVC / H.265",
+      "types": [
+        {
+          "text": "'avc1'",
+          "complexTypes": []
+        },
+        {
+          "text": "'hvc1'",
+          "complexTypes": []
+        },
+        {
+          "text": "'jpeg'",
+          "complexTypes": []
+        },
+        {
+          "text": "'apcn'",
+          "complexTypes": []
+        },
+        {
+          "text": "'ap4h'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "VideoStabilizationMode",
+      "slug": "videostabilizationmode",
+      "docs": "Video stabilization modes used when recording.\n\nOn Android only `off` and `standard` are supported.\nOn iOS all listed modes may be available when the device supports video stabilization.",
+      "types": [
+        {
+          "text": "'off'",
+          "complexTypes": []
+        },
+        {
+          "text": "'standard'",
+          "complexTypes": []
+        },
+        {
+          "text": "'cinematic'",
+          "complexTypes": []
+        },
+        {
+          "text": "'cinematicExtended'",
+          "complexTypes": []
+        },
+        {
+          "text": "'previewOptimized'",
+          "complexTypes": []
+        },
+        {
+          "text": "'cinematicExtendedEnhanced'",
+          "complexTypes": []
+        },
+        {
+          "text": "'auto'",
+          "complexTypes": []
+        },
+        {
+          "text": "'lowLatency'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "BarcodeScannerFormat",
+      "slug": "barcodescannerformat",
+      "docs": "",
+      "types": [
+        {
+          "text": "'aztec'",
+          "complexTypes": []
+        },
+        {
+          "text": "'codabar'",
+          "complexTypes": []
+        },
+        {
+          "text": "'code_39'",
+          "complexTypes": []
+        },
+        {
+          "text": "'code_93'",
+          "complexTypes": []
+        },
+        {
+          "text": "'code_128'",
+          "complexTypes": []
+        },
+        {
+          "text": "'data_matrix'",
+          "complexTypes": []
+        },
+        {
+          "text": "'ean_8'",
+          "complexTypes": []
+        },
+        {
+          "text": "'ean_13'",
+          "complexTypes": []
+        },
+        {
+          "text": "'itf'",
+          "complexTypes": []
+        },
+        {
+          "text": "'pdf417'",
+          "complexTypes": []
+        },
+        {
+          "text": "'qr_code'",
+          "complexTypes": []
+        },
+        {
+          "text": "'upc_a'",
+          "complexTypes": []
+        },
+        {
+          "text": "'upc_e'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "PictureFormat",
+      "slug": "pictureformat",
+      "docs": "",
+      "types": [
+        {
+          "text": "'jpeg'",
+          "complexTypes": []
+        },
+        {
+          "text": "'png'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "CameraPreviewFlashMode",
+      "slug": "camerapreviewflashmode",
+      "docs": "The available flash modes for the camera.\n'torch' is a continuous light mode.",
+      "types": [
+        {
+          "text": "'off'",
+          "complexTypes": []
+        },
+        {
+          "text": "'on'",
+          "complexTypes": []
+        },
+        {
+          "text": "'auto'",
+          "complexTypes": []
+        },
+        {
+          "text": "'torch'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "PermissionState",
+      "slug": "permissionstate",
+      "docs": "",
+      "types": [
+        {
+          "text": "'prompt'",
+          "complexTypes": []
+        },
+        {
+          "text": "'prompt-with-rationale'",
+          "complexTypes": []
+        },
+        {
+          "text": "'granted'",
+          "complexTypes": []
+        },
+        {
+          "text": "'denied'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "Pick",
+      "slug": "pick",
+      "docs": "From T, pick a set of properties whose keys are in the union K",
+      "types": [
+        {
+          "text": "{\r\n    [P in K]: T[P];\r\n}",
+          "complexTypes": [
+            "K",
+            "T",
+            "P"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "RecordingFinishedReason",
+      "slug": "recordingfinishedreason",
+      "docs": "",
+      "types": [
+        {
+          "text": "'manual'",
+          "complexTypes": []
+        },
+        {
+          "text": "'maxDuration'",
+          "complexTypes": []
+        },
+        {
+          "text": "'maxFileSize'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "FlashMode",
+      "slug": "flashmode",
+      "docs": "",
+      "types": [
+        {
+          "text": "CameraPreviewFlashMode",
+          "complexTypes": [
+            "CameraPreviewFlashMode"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DeviceOrientation",
+      "slug": "deviceorientation",
+      "docs": "Canonical device orientation values across platforms.",
+      "types": [
+        {
+          "text": "'portrait'",
+          "complexTypes": []
+        },
+        {
+          "text": "'landscape-left'",
+          "complexTypes": []
+        },
+        {
+          "text": "'landscape-right'",
+          "complexTypes": []
+        },
+        {
+          "text": "'portrait-upside-down'",
+          "complexTypes": []
+        },
+        {
+          "text": "'unknown'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "BarcodeFormat",
+      "slug": "barcodeformat",
+      "docs": "",
+      "types": [
+        {
+          "text": "BarcodeScannerFormat",
+          "complexTypes": [
+            "BarcodeScannerFormat"
+          ]
+        },
+        {
+          "text": "'unknown'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "ExposureMode",
+      "slug": "exposuremode",
+      "docs": "Reusable exposure mode type for cross-platform support.",
+      "types": [
+        {
+          "text": "'AUTO'",
+          "complexTypes": []
+        },
+        {
+          "text": "'LOCK'",
+          "complexTypes": []
+        },
+        {
+          "text": "'CONTINUOUS'",
+          "complexTypes": []
+        },
+        {
+          "text": "'CUSTOM'",
+          "complexTypes": []
+        }
+      ]
+    },
+    {
+      "name": "WhiteBalanceMode",
+      "slug": "whitebalancemode",
+      "docs": "Reusable white-balance mode type for cross-platform support.\n`CUSTOM` is reserved for a future manual white-balance gains API and is not\nreturned by `getWhiteBalanceModes()` until implemented.",
+      "types": [
+        {
+          "text": "'AUTO'",
+          "complexTypes": []
+        },
+        {
+          "text": "'LOCK'",
+          "complexTypes": []
+        },
+        {
+          "text": "'CONTINUOUS'",
+          "complexTypes": []
+        },
+        {
+          "text": "'CUSTOM'",
+          "complexTypes": []
+        }
+      ]
+    }
+  ],
+  "pluginConfigs": []
+}
