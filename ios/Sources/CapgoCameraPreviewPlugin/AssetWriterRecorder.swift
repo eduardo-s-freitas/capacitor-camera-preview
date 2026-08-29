@@ -25,11 +25,13 @@ final class AssetWriterRecorder {
 
     /// Why a recording ended. Mirrors the strings the movie-output path already
     /// reports through `recordingFinished`, so callers do not have to change.
+    /// Raw values are the strings the movie-output path already reported through
+    /// `recordingFinished`, so the JavaScript contract is unchanged.
     enum FinishReason: String {
-        case completed
-        case maxDurationReached
-        case maxFileSizeReached
-        case error
+        case completed = "manual"
+        case maxDurationReached = "maxDuration"
+        case maxFileSizeReached = "maxFileSize"
+        case error = "error"
     }
 
     struct Configuration {

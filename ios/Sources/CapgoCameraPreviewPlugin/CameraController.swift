@@ -161,6 +161,16 @@ class CameraController: NSObject {
     private var lastCaptureOrientation: AVCaptureVideoOrientation?
 
     var videoFileURL: URL?
+
+    /// Writes recordings itself instead of handing a file to fileVideoOutput, so
+    /// a camera switch mid-recording does not finalise the clip. See
+    /// AssetWriterRecorder.
+    private var assetRecorder: AssetWriterRecorder?
+    /// Audio taps for the recorder. The session already carries an audio *input*
+    /// (the microphone); what was missing was an output to receive its buffers,
+    /// because AVCaptureMovieFileOutput consumed them internally.
+    private var audioDataOutput: AVCaptureAudioDataOutput?
+    private let audioSampleQueue = DispatchQueue(label: "com.camera.audioQueue", qos: .userInitiated)
     var recordingFinishedCallback: ((URL, String) -> Void)?
     private var stopRecordingCompletion: ((URL?, String?, Error?) -> Void)?
     private let saneMaxZoomFactor: CGFloat = 25.5
@@ -2948,7 +2958,7 @@ extension CameraController {
             throw NSError(domain: "CameraPreview", code: 0, userInfo: [NSLocalizedDescriptionKey: "frameRate must be greater than 0"])
         }
 
-        if let fileVideoOutput = self.fileVideoOutput, fileVideoOutput.isRecording {
+        if self.isRecordingVideo {
             throw NSError(domain: "CameraPreview", code: 0, userInfo: [NSLocalizedDescriptionKey: "Cannot change video frame rate while recording"])
         }
 
@@ -2996,16 +3006,20 @@ extension CameraController {
         guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             throw CameraControllerError.cannotFindDocumentsDirectory
         }
-
-        guard let fileVideoOutput = self.fileVideoOutput else {
+        guard let dataOutput = self.dataOutput else {
             throw CameraControllerError.fileVideoOutputNotFound
         }
+        guard self.assetRecorder == nil else {
+            throw CameraControllerError.recordingInProgress
+        }
 
-        // Ensure audio session is configured for recording before starting a movie,
-        // only when we are actually recording audio (disableAudio was false).
-        // This reclaims the microphone even if other parts of the app changed the
-        // AVAudioSession category (e.g. for UI sound effects) between recordings.
-        if self.audioInput != nil {
+        let recordsAudio = self.audioInput != nil
+
+        // Ensure audio session is configured for recording, only when we are
+        // actually recording audio (disableAudio was false). This reclaims the
+        // microphone even if other parts of the app changed the AVAudioSession
+        // category (e.g. for UI sound effects) between recordings.
+        if recordsAudio {
             do {
                 let audioSession = AVAudioSession.sharedInstance()
                 try audioSession.setCategory(.playAndRecord, mode: .videoRecording, options: [.defaultToSpeaker])
@@ -3016,27 +3030,25 @@ extension CameraController {
             }
         }
 
-        // Ensure the movie file output is attached to the active session.
-        // If the camera was started without cameraMode=true, the output may not have been added yet.
-        if !captureSession.outputs.contains(where: { $0 === fileVideoOutput }) {
-            var didAddOutput = false
+        // Attach an audio tap. The session already has the microphone as an
+        // INPUT; the movie output used to consume its buffers internally, so
+        // nothing ever delivered them to us.
+        if recordsAudio, self.audioDataOutput == nil {
+            let audioOutput = AVCaptureAudioDataOutput()
             self.configureCaptureSession {
-                if captureSession.canAddOutput(fileVideoOutput) {
-                    captureSession.addOutput(fileVideoOutput)
-                    do {
-                        try self.refreshVideoStabilizationAfterMovieOutputAttached()
-                        didAddOutput = true
-                    } catch {
-                        didAddOutput = false
-                    }
+                if captureSession.canAddOutput(audioOutput) {
+                    captureSession.addOutput(audioOutput)
+                    audioOutput.setSampleBufferDelegate(self, queue: self.audioSampleQueue)
+                    self.audioDataOutput = audioOutput
                 }
-            }
-            guard didAddOutput else {
-                throw CameraControllerError.invalidOperation
             }
         }
 
-        if let connection = fileVideoOutput.connection(with: .video) {
+        // Right for a preview, wrong for a recording: discarding late frames
+        // under load drops them from the file too.
+        dataOutput.alwaysDiscardsLateVideoFrames = false
+
+        if let connection = dataOutput.connection(with: .video) {
             if connection.isEnabled == false { connection.isEnabled = true }
             // Goes off accelerometer now
             self.setVideoOrientation(self.getPhysicalOrientation(), on: connection)
@@ -3044,7 +3056,7 @@ extension CameraController {
             // Opt-in: mirror front-camera recordings so the file matches selfie preview.
             if mirrorFrontCamera, self.currentCameraPosition == .front, connection.isVideoMirroringSupported {
                 connection.isVideoMirrored = true
-            } else {
+            } else if connection.isVideoMirroringSupported {
                 connection.isVideoMirrored = false
             }
         }
@@ -3052,45 +3064,64 @@ extension CameraController {
         let identifier = UUID()
         let randomIdentifier = identifier.uuidString.replacingOccurrences(of: "-", with: "")
         let finalIdentifier = String(randomIdentifier.prefix(8))
-        let fileName="cpcp_video_"+finalIdentifier+".mp4"
-
+        let fileName = "cpcp_video_" + finalIdentifier + ".mp4"
         let fileUrl = documentsDirectory.appendingPathComponent(fileName)
-        try? FileManager.default.removeItem(at: fileUrl)
 
-        if let maxDuration = maxDuration, maxDuration > 0 {
-            fileVideoOutput.maxRecordedDuration = CMTime(seconds: Double(maxDuration), preferredTimescale: 600)
-        } else {
-            fileVideoOutput.maxRecordedDuration = .invalid
+        let recorder = AssetWriterRecorder(
+            configuration: AssetWriterRecorder.Configuration(
+                outputURL: fileUrl,
+                maxDuration: maxDuration.map { Double($0) },
+                maxFileSize: maxFileSize.map { Int64($0) },
+                includeAudio: recordsAudio
+            )
+        )
+
+        // Orientation is already applied to the delivered buffers by the capture
+        // connection above, so the file needs no further transform.
+        try recorder.prepare(transform: .identity)
+
+        // A limit trips on the capture queue mid-append. Finalising there would
+        // stall frame delivery, so the stop is bounced off it.
+        recorder.onLimitReached = { [weak self] reason in
+            DispatchQueue.main.async {
+                self?.finishRecording(reason: reason)
+            }
         }
-        fileVideoOutput.maxRecordedFileSize = Int64(maxFileSize ?? 0)
 
-        if let connection = fileVideoOutput.connection(with: .video),
-           let codecType = avVideoCodecType(for: self.videoCodec),
-           fileVideoOutput.availableVideoCodecTypes.contains(codecType) {
-            fileVideoOutput.setOutputSettings([AVVideoCodecKey: codecType], for: connection)
-        }
-
-        self.configureCaptureSession {
-            self.applyVideoStabilizationMode()
-        }
-
-        // Start recording video
-        fileVideoOutput.startRecording(to: fileUrl, recordingDelegate: self)
-
-        // Save the file URL for later use
+        self.assetRecorder = recorder
         self.videoFileURL = fileUrl
     }
 
+    /// Single exit point for a recording, whatever ended it: a manual stop, a
+    /// configured limit, or a teardown.
+    ///
+    /// Reports through the same two channels the movie-output path used, so the
+    /// JavaScript contract is unchanged: `stopRecordingCompletion` resolves
+    /// `stopRecordVideo()`, and `recordingFinishedCallback` emits the
+    /// `recordingFinished` event.
+    private func finishRecording(reason: AssetWriterRecorder.FinishReason) {
+        guard let recorder = self.assetRecorder else { return }
+        recorder.stop(reason: reason) { [weak self] url, finishReason, error in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                self.assetRecorder = nil
+                self.dataOutput?.alwaysDiscardsLateVideoFrames = true
+
+                let stopCompletion = self.stopRecordingCompletion
+                self.stopRecordingCompletion = nil
+
+                guard let url = url, finishReason != .error else {
+                    stopCompletion?(nil, nil, error ?? CameraControllerError.unknown)
+                    return
+                }
+                stopCompletion?(url, finishReason.rawValue, nil)
+                self.recordingFinishedCallback?(url, finishReason.rawValue)
+            }
+        }
+    }
+
     func stopRecording(completion: @escaping (URL?, String?, Error?) -> Void) {
-        guard let captureSession = self.captureSession, captureSession.isRunning else {
-            completion(nil, nil, CameraControllerError.captureSessionIsMissing)
-            return
-        }
-        guard let fileVideoOutput = self.fileVideoOutput else {
-            completion(nil, nil, CameraControllerError.fileVideoOutputNotFound)
-            return
-        }
-        guard fileVideoOutput.isRecording else {
+        guard let recorder = self.assetRecorder, recorder.isRecording else {
             completion(nil, nil, CameraControllerError.invalidOperation)
             return
         }
@@ -3100,7 +3131,13 @@ extension CameraController {
         }
 
         self.stopRecordingCompletion = completion
-        fileVideoOutput.stopRecording()
+        self.finishRecording(reason: .completed)
+    }
+
+    /// True while a recording is in flight. Replaces the old
+    /// `fileVideoOutput.isRecording` checks.
+    var isRecordingVideo: Bool {
+        return self.assetRecorder?.isRecording ?? false
     }
 }
 
@@ -3274,8 +3311,17 @@ extension CameraController: AVCapturePhotoCaptureDelegate {
     }
 }
 
-extension CameraController: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureMetadataOutputObjectsDelegate {
+extension CameraController: AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate, AVCaptureMetadataOutputObjectsDelegate {
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        // Feed the recorder first, and on whichever queue the buffer arrived on:
+        // hopping threads here would reorder samples and stall capture.
+        if let recorder = self.assetRecorder {
+            recorder.append(sampleBuffer, isVideo: output !== self.audioDataOutput)
+        }
+
+        // Audio never drives anything below this point.
+        if output === self.audioDataOutput { return }
+
         // Check if we're waiting for the first frame
         if !hasReceivedFirstFrame, let firstFrameCallback = firstFrameReadyCallback {
             hasReceivedFirstFrame = true
@@ -3471,48 +3517,8 @@ extension UIImage {
     }
 }
 
-extension CameraController: AVCaptureFileOutputRecordingDelegate {
-    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
-        let reason = recordingFinishReason(from: error)
-        let stopCompletion = self.stopRecordingCompletion
-        self.stopRecordingCompletion = nil
-
-        if let stopCompletion = stopCompletion {
-            DispatchQueue.main.async {
-                if reason == "error" {
-                    stopCompletion(nil, nil, error ?? CameraControllerError.unknown)
-                } else {
-                    stopCompletion(outputFileURL, reason, nil)
-                }
-            }
-        }
-
-        if reason == "error" {
-            print("Error recording movie: \(error?.localizedDescription ?? "unknown")")
-            return
-        }
-
-        print("Movie recorded successfully: \(outputFileURL)")
-        self.recordingFinishedCallback?(outputFileURL, reason)
-    }
-
-    private func recordingFinishReason(from error: Error?) -> String {
-        guard let error = error else {
-            return "manual"
-        }
-
-        let nsError = error as NSError
-        guard nsError.domain == AVFoundationErrorDomain else {
-            return "error"
-        }
-
-        switch AVError.Code(rawValue: nsError.code) {
-        case .maximumDurationReached:
-            return "maxDuration"
-        case .maximumFileSizeReached:
-            return "maxFileSize"
-        default:
-            return "error"
-        }
-    }
-}
+// The AVCaptureFileOutputRecordingDelegate conformance and its
+// didFinishRecordingTo handler lived here. Both went with the movie-output
+// recording path: nothing calls startRecording on fileVideoOutput any more, so
+// the delegate could never fire, and leaving it in place kept a second route
+// into stopRecordingCompletion that contradicted the recorder's.
