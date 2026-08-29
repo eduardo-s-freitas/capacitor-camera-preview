@@ -1101,8 +1101,15 @@ public class CameraXView implements LifecycleOwner, LifecycleObserver {
                     }
                 }
 
-                // Only setup VideoCapture if enableVideoMode is true
-                if (sessionConfig.isVideoModeEnabled()) {
+                // Only setup VideoCapture if enableVideoMode is true.
+                //
+                // Skip the rebuild while a recording is in flight.
+                // flipCamera() routes through here, and building a fresh Recorder
+                // and VideoCapture orphans the running Recording — which is bound
+                // to the Recorder it was started from. Combined with
+                // asPersistentRecording() below, reusing the existing instance
+                // lets the recording survive the unbind/rebind that the flip does.
+                if (sessionConfig.isVideoModeEnabled() && (videoCapture == null || currentRecording == null)) {
                     QualitySelector qualitySelector;
 
                     // Get quality from sessionConfig default to high if null
@@ -5132,15 +5139,22 @@ public class CameraXView implements LifecycleOwner, LifecycleObserver {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
+            // asPersistentRecording() keeps the recording alive across
+            // the unbindAll()/bindToLifecycle() cycle that flipCamera() performs.
+            // Without it, switching cameras mid-recording finalises the clip and
+            // stopRecordVideo() then fails with "No video recording in progress".
             currentRecording = videoCapture
                 .getOutput()
                 .prepareRecording(context, outputOptions)
                 .withAudioEnabled()
+                .asPersistentRecording()
                 .start(ContextCompat.getMainExecutor(context), videoRecordEventListener);
         } else {
+            // See the note on the audio-enabled branch above.
             currentRecording = videoCapture
                 .getOutput()
                 .prepareRecording(context, outputOptions)
+                .asPersistentRecording()
                 .start(ContextCompat.getMainExecutor(context), videoRecordEventListener);
         }
 
