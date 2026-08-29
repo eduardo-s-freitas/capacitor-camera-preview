@@ -39,28 +39,38 @@ emitted. Two things each broke it, so both had to change:
 
 Verified on device: recording continues across a camera switch and stops normally.
 
-## Not fixed here: iOS
+### `ios/…` — flip during video recording
 
-iOS has the same symptom from an unrelated cause. `flip()` in
-`CameraController.swift` removes the `AVCaptureMovieFileOutput` from the session
-and re-adds it to rebind its connection ("Re-attach movie file output"). Removing
-an output that is recording ends it with an error, so the delegate reports reason
-`"error"`, `stopRecordingCompletion` is rejected, and `recordingFinishedCallback`
-never fires. It surfaces in the app as *"That recording could not be saved"*.
+Same symptom, unrelated cause. `flip()` removes the `AVCaptureMovieFileOutput`
+from the session and re-adds it to rebind its connection to the new input
+("Re-attach movie file output"). Removing an output that is recording ends the
+recording with an error, so the delegate reported reason `"error"`,
+`stopRecordingCompletion` was rejected, and `recordingFinishedCallback` never
+fired. In the app it surfaced as *"That recording could not be saved"*.
 
-Supporting it needs `AVAssetWriter` + `AVCaptureVideoDataOutput` instead of
-`AVCaptureMovieFileOutput`, since only the former survives an input switch.
+Recording now goes through `AssetWriterRecorder` (`AVAssetWriter` fed from the
+existing `AVCaptureVideoDataOutput`, plus a new `AVCaptureAudioDataOutput`). A
+writer has no tie to the session's outputs, so swapping the camera input is
+invisible to it — the frames simply start arriving from the other lens.
 
-Groundwork already in the plugin, which makes this smaller than it sounds:
-`dataOutput` (an `AVCaptureVideoDataOutput`) is **already** added to every session
-with a sample-buffer delegate on a dedicated queue, so video frames are flowing.
-What is missing is an `AVCaptureAudioDataOutput`, the asset writer itself, and
-moving `maxDuration` / `maxFileSize` from the movie output into code.
+Notes for anyone changing this:
 
-Two things to watch when doing it:
-- `alwaysDiscardsLateVideoFrames = true` is right for preview and wrong for
-  recording — it must be `false` while writing.
-- `videoSettings` is `32BGRA`; writable, but not the cheapest path.
+- The writer is built on the **first video buffer**, sized from that buffer's
+  format description. The device's active format reports landscape dimensions
+  while the connection is set to portrait, so using it produces a stretched clip.
+- `alwaysDiscardsLateVideoFrames` is turned off while recording. It is right for
+  a preview and wrong for a file.
+- `maxDuration` and `maxFileSize` are enforced in the recorder; they were
+  properties of the movie output.
+- `FinishReason` raw values are the strings the movie-output path already
+  reported (`manual`, `maxDuration`, `maxFileSize`, `error`), so the JavaScript
+  contract is unchanged.
+- The `AVCaptureFileOutputRecordingDelegate` conformance was removed: it could
+  no longer fire and was a second, contradictory route into
+  `stopRecordingCompletion`.
+
+Verified on device: recording continues across a camera switch, the clip reaches
+the preview with both halves, and posts normally.
 
 ## Keeping up with upstream
 
